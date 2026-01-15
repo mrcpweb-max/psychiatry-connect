@@ -36,20 +36,40 @@ export default function Auth() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (session?.user) {
-          // Defer navigation to avoid potential issues
-          setTimeout(() => {
-            navigate("/dashboard");
+          // Check user role to redirect appropriately
+          setTimeout(async () => {
+            const { data: roleData } = await supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", session.user.id)
+              .maybeSingle();
+
+            if (roleData?.role === "admin") {
+              navigate("/admin");
+            } else {
+              navigate("/dashboard");
+            }
           }, 0);
         }
       }
     );
 
     // Check if already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        navigate("/dashboard");
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+
+        if (roleData?.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
       }
     });
 
@@ -103,8 +123,18 @@ export default function Auth() {
 
         toast({
           title: "Account created!",
-          description: "Please check your email to verify your account.",
+          description: "You can now sign in to your account.",
         });
+        
+        // Auto-login after signup (since auto-confirm is enabled)
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        
+        if (signInError) {
+          setMode("login");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: formData.email,

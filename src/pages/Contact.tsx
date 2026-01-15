@@ -12,11 +12,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Phone, Clock, Send, CheckCircle2 } from "lucide-react";
+import { useSubmitContact } from "@/hooks/useContactSubmissions";
+import { Mail, Phone, Clock, Send, CheckCircle2, Loader2 } from "lucide-react";
 
 export default function Contact() {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitContact = useSubmitContact();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -27,17 +28,27 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      await submitContact.mutateAsync({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject || undefined,
+        message: formData.message,
+      });
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    toast({
-      title: "Message sent!",
-      description: "We'll get back to you within 24 hours.",
-    });
+      setIsSubmitted(true);
+      toast({
+        title: "Message sent!",
+        description: "We'll get back to you within 24 hours.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const contactInfo = [
@@ -193,10 +204,13 @@ export default function Contact() {
                       <Button
                         type="submit"
                         className="w-full gradient-bg-primary border-0 gap-2"
-                        disabled={isSubmitting}
+                        disabled={submitContact.isPending}
                       >
-                        {isSubmitting ? (
-                          "Sending..."
+                        {submitContact.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Sending...
+                          </>
                         ) : (
                           <>
                             Send Message
