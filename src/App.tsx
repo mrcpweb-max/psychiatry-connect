@@ -3,7 +3,16 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { PublicLayout } from "./components/layout/PublicLayout";
+import Home from "./pages/Home";
+import HowItWorks from "./pages/HowItWorks";
+import Sessions from "./pages/Sessions";
+import FAQ from "./pages/FAQ";
+import Contact from "./pages/Contact";
+import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
+import BookSession from "./pages/BookSession";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -15,8 +24,26 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          {/* Public pages with layout */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/sessions" element={<Sessions />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/contact" element={<Contact />} />
+          </Route>
+          
+          {/* Auth page (no layout) */}
+          <Route path="/auth" element={<Auth />} />
+          
+          {/* Protected pages */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/book" element={<BookSession />} />
+          
+          {/* Admin pages */}
+          <Route path="/admin" element={<AdminDashboard />} />
+          
+          {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
