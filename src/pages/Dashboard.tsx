@@ -1,94 +1,37 @@
-import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserBookings } from "@/hooks/useBookings";
 import {
   Brain,
   Calendar,
   CreditCard,
-  User,
   LogOut,
   Plus,
   Clock,
   BookOpen,
   ChevronRight,
   Settings,
+  Loader2,
+  CalendarCheck,
 } from "lucide-react";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { format } from "date-fns";
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-        
-        if (!session?.user) {
-          navigate("/auth");
-        }
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-      
-      if (!session?.user) {
-        navigate("/auth");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+  const { user, profile, signOut } = useAuth();
+  const { data: bookings, isLoading: bookingsLoading } = useUserBookings();
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    toast({
-      title: "Signed out",
-      description: "You've been successfully signed out.",
-    });
-    navigate("/");
+    await signOut();
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse">Loading...</div>
-      </div>
-    );
-  }
+  const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
-  const userName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
-
-  // Mock data for upcoming sessions
-  const upcomingSessions = [
-    {
-      id: 1,
-      type: "1:1 Mock Examination",
-      trainer: "Dr. Sarah Mitchell",
-      date: "Jan 20, 2026",
-      time: "10:00 AM",
-      stations: 4,
-      status: "confirmed",
-    },
-    {
-      id: 2,
-      type: "Learning Session",
-      trainer: "Dr. James Chen",
-      date: "Jan 25, 2026",
-      time: "2:00 PM",
-      stations: 2,
-      status: "pending",
-    },
-  ];
+  const upcomingBookings = bookings?.filter(
+    (b) => b.status !== "cancelled" && b.status !== "completed"
+  ) || [];
 
   const quickActions = [
     {
@@ -102,24 +45,43 @@ export default function Dashboard() {
       title: "My Sessions",
       description: "View upcoming and past sessions",
       icon: Calendar,
-      href: "/dashboard/sessions",
+      href: "/dashboard",
       primary: false,
     },
     {
       title: "Payment History",
       description: "View your transactions",
       icon: CreditCard,
-      href: "/dashboard/payments",
+      href: "/dashboard",
       primary: false,
     },
     {
       title: "Profile Settings",
       description: "Update your information",
       icon: Settings,
-      href: "/dashboard/profile",
+      href: "/dashboard",
       primary: false,
     },
   ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "confirmed":
+        return "default";
+      case "pending":
+        return "secondary";
+      case "completed":
+        return "outline";
+      default:
+        return "destructive";
+    }
+  };
+
+  const formatSessionType = (mode: string, type: string) => {
+    const modeLabel = mode === "one_on_one" ? "1:1" : "Group";
+    const typeLabel = type === "mock" ? "Mock Examination" : "Learning Session";
+    return `${modeLabel} ${typeLabel}`;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -195,11 +157,15 @@ export default function Dashboard() {
             </Link>
           </CardHeader>
           <CardContent>
-            {upcomingSessions.length > 0 ? (
+            {bookingsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : upcomingBookings.length > 0 ? (
               <div className="space-y-4">
-                {upcomingSessions.map((session) => (
+                {upcomingBookings.map((booking) => (
                   <div
-                    key={session.id}
+                    key={booking.id}
                     className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
@@ -207,25 +173,38 @@ export default function Dashboard() {
                         <BookOpen className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <h4 className="font-semibold">{session.type}</h4>
+                        <h4 className="font-semibold">
+                          {formatSessionType(booking.session_mode, booking.session_type)}
+                        </h4>
                         <p className="text-sm text-muted-foreground">
-                          with {session.trainer} • {session.stations} stations
+                          with {booking.trainer?.name || "Trainer"} • {booking.stations} station{booking.stations !== 1 ? "s" : ""}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right hidden sm:block">
-                        <div className="flex items-center gap-1 text-sm font-medium">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          {session.date}
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Clock className="h-4 w-4" />
-                          {session.time}
-                        </div>
+                        {booking.scheduled_at ? (
+                          <>
+                            <div className="flex items-center gap-1 text-sm font-medium">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              {format(new Date(booking.scheduled_at), "MMM d, yyyy")}
+                            </div>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Clock className="h-4 w-4" />
+                              {format(new Date(booking.scheduled_at), "h:mm a")}
+                            </div>
+                          </>
+                        ) : (
+                          <Link to={`/schedule/${booking.id}`}>
+                            <Button size="sm" variant="outline" className="gap-1">
+                              <CalendarCheck className="h-4 w-4" />
+                              Schedule
+                            </Button>
+                          </Link>
+                        )}
                       </div>
-                      <Badge variant={session.status === "confirmed" ? "default" : "secondary"}>
-                        {session.status}
+                      <Badge variant={getStatusColor(booking.status)}>
+                        {booking.status}
                       </Badge>
                       <ChevronRight className="h-5 w-5 text-muted-foreground" />
                     </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useTrainers, type Trainer } from "@/hooks/useTrainers";
+import { useCreateBooking, type SessionMode, type SessionType } from "@/hooks/useBookings";
 import {
   Brain,
   ArrowLeft,
@@ -18,26 +20,12 @@ import {
   ClipboardCheck,
   CheckCircle2,
   Star,
-  Clock,
+  Loader2,
+  CreditCard,
 } from "lucide-react";
 
-type SessionMode = "1-1" | "group";
-type SessionType = "mock" | "learning";
+type UISessionMode = "1-1" | "group";
 type GroupSize = 2 | 3;
-
-interface Trainer {
-  id: string;
-  name: string;
-  specialty: string;
-  rating: number;
-  sessions: number;
-}
-
-const trainers: Trainer[] = [
-  { id: "1", name: "Dr. Sarah Mitchell", specialty: "Adult Psychiatry", rating: 4.9, sessions: 250 },
-  { id: "2", name: "Dr. James Chen", specialty: "Child & Adolescent", rating: 4.8, sessions: 180 },
-  { id: "3", name: "Dr. Amara Okafor", specialty: "Forensic Psychiatry", rating: 4.9, sessions: 150 },
-];
 
 // Pricing configuration
 const pricing = {
@@ -54,56 +42,42 @@ const pricing = {
 export default function BookSession() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { data: trainers, isLoading: trainersLoading } = useTrainers();
+  const createBooking = useCreateBooking();
   
   const [step, setStep] = useState(1);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
   
   // Booking state
   const [selectedTrainer, setSelectedTrainer] = useState<string>("");
-  const [sessionMode, setSessionMode] = useState<SessionMode | "">("");
+  const [sessionMode, setSessionMode] = useState<UISessionMode | "">("");
   const [sessionType, setSessionType] = useState<SessionType | "">("");
   const [stations, setStations] = useState<number | "">("");
   const [groupSize, setGroupSize] = useState<GroupSize | "">("");
   const [participants, setParticipants] = useState<{ name: string; email: string }[]>([]);
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setIsAuthenticated(!!session?.user);
-        setLoading(false);
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session?.user);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Reset dependent fields when mode changes
-  useEffect(() => {
+  const handleModeChange = (mode: UISessionMode) => {
+    setSessionMode(mode);
     setSessionType("");
     setStations("");
     setGroupSize("");
     setParticipants([]);
-  }, [sessionMode]);
-
-  useEffect(() => {
-    setStations("");
-  }, [sessionType, groupSize]);
+  };
 
   // Initialize participants when group size changes
-  useEffect(() => {
-    if (groupSize) {
-      const count = groupSize - 1; // Exclude the booking user
-      setParticipants(Array(count).fill({ name: "", email: "" }));
-    } else {
-      setParticipants([]);
-    }
-  }, [groupSize]);
+  const handleGroupSizeChange = (size: GroupSize) => {
+    setGroupSize(size);
+    setStations("");
+    const count = size - 1;
+    setParticipants(Array(count).fill({ name: "", email: "" }));
+  };
+
+  const handleSessionTypeChange = (type: SessionType) => {
+    setSessionType(type);
+    setStations("");
+  };
 
   const calculatePrice = (): number => {
     if (sessionMode === "1-1" && sessionType && stations) {
@@ -145,15 +119,46 @@ export default function BookSession() {
     }
   };
 
+  const handleSubmit = async () => {
+    if (!canProceed()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const dbSessionMode: SessionMode = sessionMode === "1-1" ? "one_on_one" : "group";
+      const dbSessionType: SessionType = sessionMode === "group" ? "learning" : (sessionType as SessionType);
+
+      const booking = await createBooking.mutateAsync({
+        trainer_id: selectedTrainer,
+        session_mode: dbSessionMode,
+        session_type: dbSessionType,
+        stations: stations as number,
+        group_size: sessionMode === "group" ? (groupSize as number) : undefined,
+        group_participants: sessionMode === "group" ? participants : undefined,
+      });
+
+      toast({
+        title: "Booking created!",
+        description: "Now schedule your session with the trainer.",
+      });
+
+      // Navigate to scheduling page
+      navigate(`/schedule/${booking.id}`);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create booking. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleNext = () => {
     if (canProceed()) {
       if (step === 3) {
-        // Proceed to payment
-        toast({
-          title: "Proceeding to payment",
-          description: "You will be redirected to our secure payment page.",
-        });
-        // In production, this would integrate with Stripe
+        handleSubmit();
       } else {
         setStep(step + 1);
       }
@@ -172,15 +177,7 @@ export default function BookSession() {
     setParticipants(newParticipants);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <div className="min-h-screen gradient-bg-hero flex items-center justify-center p-4">
         <Card className="w-full max-w-md text-center">
@@ -203,7 +200,7 @@ export default function BookSession() {
     );
   }
 
-  const trainer = trainers.find((t) => t.id === selectedTrainer);
+  const trainer = trainers?.find((t) => t.id === selectedTrainer);
   const price = calculatePrice();
 
   return (
@@ -270,46 +267,46 @@ export default function BookSession() {
           <CardContent>
             {/* Step 1: Choose Trainer */}
             {step === 1 && (
-              <RadioGroup value={selectedTrainer} onValueChange={setSelectedTrainer}>
-                <div className="grid gap-4">
-                  {trainers.map((t) => (
-                    <label
-                      key={t.id}
-                      className={`flex items-center gap-4 p-4 rounded-lg border cursor-pointer transition-all ${
-                        selectedTrainer === t.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                    >
-                      <RadioGroupItem value={t.id} className="sr-only" />
-                      <div className="w-14 h-14 rounded-full gradient-bg-primary flex items-center justify-center flex-shrink-0">
-                        <User className="h-7 w-7 text-primary-foreground" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{t.name}</h4>
-                        <p className="text-sm text-muted-foreground">{t.specialty}</p>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="flex items-center gap-1 text-sm">
-                            <Star className="h-4 w-4 text-warning fill-warning" />
-                            {t.rating}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            {t.sessions} sessions
-                          </span>
-                        </div>
-                      </div>
-                      {selectedTrainer === t.id && (
-                        <CheckCircle2 className="h-6 w-6 text-primary" />
-                      )}
-                    </label>
-                  ))}
+              trainersLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
-              </RadioGroup>
+              ) : (
+                <RadioGroup value={selectedTrainer} onValueChange={setSelectedTrainer}>
+                  <div className="grid gap-4">
+                    {trainers?.map((t) => (
+                      <label
+                        key={t.id}
+                        className={`flex items-center gap-4 p-4 rounded-lg border cursor-pointer transition-all ${
+                          selectedTrainer === t.id
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <RadioGroupItem value={t.id} className="sr-only" />
+                        <div className="w-14 h-14 rounded-full gradient-bg-primary flex items-center justify-center flex-shrink-0">
+                          <User className="h-7 w-7 text-primary-foreground" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold">{t.name}</h4>
+                          <p className="text-sm text-muted-foreground">{t.specialty || "MRCPsych Trainer"}</p>
+                          {t.bio && (
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{t.bio}</p>
+                          )}
+                        </div>
+                        {selectedTrainer === t.id && (
+                          <CheckCircle2 className="h-6 w-6 text-primary" />
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                </RadioGroup>
+              )
             )}
 
             {/* Step 2: Session Mode */}
             {step === 2 && (
-              <RadioGroup value={sessionMode} onValueChange={(v) => setSessionMode(v as SessionMode)}>
+              <RadioGroup value={sessionMode} onValueChange={(v) => handleModeChange(v as UISessionMode)}>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <label
                     className={`flex flex-col items-center p-6 rounded-lg border cursor-pointer transition-all ${
@@ -364,7 +361,7 @@ export default function BookSession() {
                       <Label className="text-base font-semibold mb-3 block">Session Type</Label>
                       <RadioGroup
                         value={sessionType}
-                        onValueChange={(v) => setSessionType(v as SessionType)}
+                        onValueChange={(v) => handleSessionTypeChange(v as SessionType)}
                         className="grid sm:grid-cols-2 gap-4"
                       >
                         <label
@@ -433,7 +430,7 @@ export default function BookSession() {
                       <Label className="text-base font-semibold mb-3 block">Group Size</Label>
                       <RadioGroup
                         value={groupSize.toString()}
-                        onValueChange={(v) => setGroupSize(parseInt(v) as GroupSize)}
+                        onValueChange={(v) => handleGroupSizeChange(parseInt(v) as GroupSize)}
                         className="grid sm:grid-cols-2 gap-4"
                       >
                         <label
@@ -563,13 +560,18 @@ export default function BookSession() {
           </Button>
           <Button
             onClick={handleNext}
-            disabled={!canProceed()}
+            disabled={!canProceed() || isSubmitting}
             className="gradient-bg-primary border-0 gap-2"
           >
-            {step === 3 ? (
+            {isSubmitting ? (
               <>
-                Proceed to Payment
-                <CreditCard className="h-4 w-4" />
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : step === 3 ? (
+              <>
+                Book & Schedule
+                <ArrowRight className="h-4 w-4" />
               </>
             ) : (
               <>
@@ -583,6 +585,3 @@ export default function BookSession() {
     </div>
   );
 }
-
-// Add missing import
-import { CreditCard } from "lucide-react";
