@@ -14,16 +14,387 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_logs: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_logs_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          calendly_event_uri: string | null
+          candidate_id: string
+          created_at: string
+          group_participants: Json | null
+          group_size: number | null
+          id: string
+          notes: string | null
+          payment_id: string | null
+          scheduled_at: string | null
+          scheduling_token_id: string | null
+          session_mode: Database["public"]["Enums"]["session_mode"]
+          session_type: Database["public"]["Enums"]["session_type"]
+          stations: number
+          status: Database["public"]["Enums"]["booking_status"]
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          calendly_event_uri?: string | null
+          candidate_id: string
+          created_at?: string
+          group_participants?: Json | null
+          group_size?: number | null
+          id?: string
+          notes?: string | null
+          payment_id?: string | null
+          scheduled_at?: string | null
+          scheduling_token_id?: string | null
+          session_mode: Database["public"]["Enums"]["session_mode"]
+          session_type: Database["public"]["Enums"]["session_type"]
+          stations?: number
+          status?: Database["public"]["Enums"]["booking_status"]
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          calendly_event_uri?: string | null
+          candidate_id?: string
+          created_at?: string
+          group_participants?: Json | null
+          group_size?: number | null
+          id?: string
+          notes?: string | null
+          payment_id?: string | null
+          scheduled_at?: string | null
+          scheduling_token_id?: string | null
+          session_mode?: Database["public"]["Enums"]["session_mode"]
+          session_type?: Database["public"]["Enums"]["session_type"]
+          stations?: number
+          status?: Database["public"]["Enums"]["booking_status"]
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_scheduling_token_id_fkey"
+            columns: ["scheduling_token_id"]
+            isOneToOne: false
+            referencedRelation: "scheduling_tokens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_submissions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_read: boolean
+          message: string
+          name: string
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_read?: boolean
+          message: string
+          name: string
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          name?: string
+          subject?: string | null
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          candidate_id: string
+          created_at: string
+          currency: string
+          group_participants: Json | null
+          group_size: number | null
+          id: string
+          provider_ref: string | null
+          session_mode: Database["public"]["Enums"]["session_mode"]
+          session_type: Database["public"]["Enums"]["session_type"]
+          stations: number
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          candidate_id: string
+          created_at?: string
+          currency?: string
+          group_participants?: Json | null
+          group_size?: number | null
+          id?: string
+          provider_ref?: string | null
+          session_mode: Database["public"]["Enums"]["session_mode"]
+          session_type: Database["public"]["Enums"]["session_type"]
+          stations?: number
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          candidate_id?: string
+          created_at?: string
+          currency?: string
+          group_participants?: Json | null
+          group_size?: number | null
+          id?: string
+          provider_ref?: string | null
+          session_mode?: Database["public"]["Enums"]["session_mode"]
+          session_type?: Database["public"]["Enums"]["session_type"]
+          stations?: number
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      scheduling_tokens: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          payment_id: string | null
+          token: string
+          trainer_id: string
+          used_at: string | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          payment_id?: string | null
+          token: string
+          trainer_id: string
+          used_at?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          payment_id?: string | null
+          token?: string
+          trainer_id?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduling_tokens_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduling_tokens_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduling_tokens_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainers: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          calendly_url: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          specialty: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          calendly_url?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          specialty?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          calendly_url?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          specialty?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_uuid: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      is_admin: { Args: never; Returns: boolean }
+      is_candidate: { Args: never; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "candidate"
+      booking_status: "pending" | "confirmed" | "completed" | "cancelled"
+      payment_status: "pending" | "completed" | "refunded" | "failed"
+      session_mode: "one_on_one" | "group"
+      session_type: "mock" | "learning"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +521,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "candidate"],
+      booking_status: ["pending", "confirmed", "completed", "cancelled"],
+      payment_status: ["pending", "completed", "refunded", "failed"],
+      session_mode: ["one_on_one", "group"],
+      session_type: ["mock", "learning"],
+    },
   },
 } as const
