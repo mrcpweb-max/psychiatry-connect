@@ -390,7 +390,7 @@ export type Database = {
       is_candidate: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "candidate"
+      app_role: "admin" | "candidate" | "trainer"
       booking_status: "pending" | "confirmed" | "completed" | "cancelled"
       payment_status: "pending" | "completed" | "refunded" | "failed"
       session_mode: "one_on_one" | "group"
@@ -522,7 +522,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "candidate"],
+      app_role: ["admin", "candidate", "trainer"],
       booking_status: ["pending", "confirmed", "completed", "cancelled"],
       payment_status: ["pending", "completed", "refunded", "failed"],
       session_mode: ["one_on_one", "group"],
