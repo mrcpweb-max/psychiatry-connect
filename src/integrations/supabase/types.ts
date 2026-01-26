@@ -52,6 +52,66 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
+      booking_stations: {
+        Row: {
+          booking_id: string
+          created_at: string
+          id: string
+          station_id: string
+          station_order: number
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          id?: string
+          station_id: string
+          station_order?: number
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          id?: string
+          station_id?: string
+          station_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_stations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_stations_station_id_fkey"
+            columns: ["station_id"]
+            isOneToOne: false
+            referencedRelation: "stations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           calendly_event_uri: string | null
@@ -62,6 +122,7 @@ export type Database = {
           id: string
           notes: string | null
           payment_id: string | null
+          recording_consent: boolean | null
           scheduled_at: string | null
           scheduling_token_id: string | null
           session_mode: Database["public"]["Enums"]["session_mode"]
@@ -80,6 +141,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_id?: string | null
+          recording_consent?: boolean | null
           scheduled_at?: string | null
           scheduling_token_id?: string | null
           session_mode: Database["public"]["Enums"]["session_mode"]
@@ -98,6 +160,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_id?: string | null
+          recording_consent?: boolean | null
           scheduled_at?: string | null
           scheduling_token_id?: string | null
           session_mode?: Database["public"]["Enums"]["session_mode"]
@@ -254,6 +317,44 @@ export type Database = {
         }
         Relationships: []
       }
+      recordings: {
+        Row: {
+          booking_id: string
+          created_at: string
+          expiry_date: string
+          id: string
+          recording_url: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          expiry_date: string
+          id?: string
+          recording_url: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          expiry_date?: string
+          id?: string
+          recording_url?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recordings_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scheduling_tokens: {
         Row: {
           candidate_id: string
@@ -309,6 +410,152 @@ export type Database = {
           },
         ]
       }
+      station_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      station_subcategories: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "station_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "station_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stations: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          subcategory_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          subcategory_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          subcategory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stations_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "station_subcategories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainer_availability: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          start_time: string
+          trainer_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          start_time: string
+          trainer_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          start_time?: string
+          trainer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_availability_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainer_blocked_dates: {
+        Row: {
+          blocked_date: string
+          created_at: string
+          id: string
+          reason: string | null
+          trainer_id: string
+        }
+        Insert: {
+          blocked_date: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          trainer_id: string
+        }
+        Update: {
+          blocked_date?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          trainer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_blocked_dates_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trainers: {
         Row: {
           avatar_url: string | null
@@ -321,6 +568,7 @@ export type Database = {
           name: string
           specialty: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -333,6 +581,7 @@ export type Database = {
           name: string
           specialty?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -345,6 +594,7 @@ export type Database = {
           name?: string
           specialty?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -388,6 +638,7 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_candidate: { Args: never; Returns: boolean }
+      is_trainer: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "candidate" | "trainer"
