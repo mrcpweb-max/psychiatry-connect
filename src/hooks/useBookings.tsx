@@ -21,6 +21,7 @@ export interface Booking {
   calendly_event_uri: string | null;
   status: BookingStatus;
   notes: string | null;
+  recording_consent: boolean;
   created_at: string;
   updated_at: string;
   // Joined data
@@ -45,6 +46,7 @@ export interface CreateBookingData {
   group_size?: number;
   group_participants?: any;
   notes?: string;
+  recording_consent?: boolean;
 }
 
 export function useUserBookings() {

@@ -6,10 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrainers, type Trainer } from "@/hooks/useTrainers";
 import { useCreateBooking, type SessionMode, type SessionType } from "@/hooks/useBookings";
+import { StationSelector } from "@/components/booking/StationSelector";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Brain,
   ArrowLeft,
@@ -22,10 +25,17 @@ import {
   Star,
   Loader2,
   CreditCard,
+  Video,
 } from "lucide-react";
 
 type UISessionMode = "1-1" | "group";
 type GroupSize = 2 | 3;
+
+interface StationSelection {
+  categoryId: string;
+  subcategoryId: string;
+  stationId: string;
+}
 
 // Pricing configuration
 const pricing = {
@@ -55,6 +65,8 @@ export default function BookSession() {
   const [stations, setStations] = useState<number | "">("");
   const [groupSize, setGroupSize] = useState<GroupSize | "">("");
   const [participants, setParticipants] = useState<{ name: string; email: string }[]>([]);
+  const [stationSelections, setStationSelections] = useState<StationSelection[]>([]);
+  const [recordingConsent, setRecordingConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Reset dependent fields when mode changes
@@ -64,12 +76,14 @@ export default function BookSession() {
     setStations("");
     setGroupSize("");
     setParticipants([]);
+    setStationSelections([]);
   };
 
   // Initialize participants when group size changes
   const handleGroupSizeChange = (size: GroupSize) => {
     setGroupSize(size);
     setStations("");
+    setStationSelections([]);
     const count = size - 1;
     setParticipants(Array(count).fill({ name: "", email: "" }));
   };
@@ -77,6 +91,21 @@ export default function BookSession() {
   const handleSessionTypeChange = (type: SessionType) => {
     setSessionType(type);
     setStations("");
+    setStationSelections([]);
+  };
+
+  const handleStationsChange = (count: number) => {
+    setStations(count);
+    // Initialize station selections
+    setStationSelections(
+      Array(count).fill({ categoryId: "", subcategoryId: "", stationId: "" })
+    );
+  };
+
+  const updateStationSelection = (index: number, selection: StationSelection) => {
+    const newSelections = [...stationSelections];
+    newSelections[index] = selection;
+    setStationSelections(newSelections);
   };
 
   const calculatePrice = (): number => {
@@ -99,6 +128,10 @@ export default function BookSession() {
     return [1, 2, 3];
   };
 
+  const allStationsSelected = () => {
+    return stationSelections.every((s) => s.stationId !== "");
+  };
+
   const canProceed = () => {
     switch (step) {
       case 1:
@@ -114,6 +147,8 @@ export default function BookSession() {
           return participants.every((p) => p.name.trim() && p.email.trim());
         }
         return false;
+      case 4:
+        return allStationsSelected() && recordingConsent;
       default:
         return false;
     }
@@ -135,7 +170,19 @@ export default function BookSession() {
         stations: stations as number,
         group_size: sessionMode === "group" ? (groupSize as number) : undefined,
         group_participants: sessionMode === "group" ? participants : undefined,
+        recording_consent: recordingConsent,
       });
+
+      // Save station selections
+      if (stationSelections.length > 0 && booking.id) {
+        const stationInserts = stationSelections.map((s, index) => ({
+          booking_id: booking.id,
+          station_id: s.stationId,
+          station_order: index + 1,
+        }));
+
+        await supabase.from("booking_stations").insert(stationInserts);
+      }
 
       toast({
         title: "Booking created!",
@@ -157,7 +204,7 @@ export default function BookSession() {
 
   const handleNext = () => {
     if (canProceed()) {
-      if (step === 3) {
+      if (step === 4) {
         handleSubmit();
       } else {
         setStep(step + 1);
@@ -202,6 +249,10 @@ export default function BookSession() {
 
   const trainer = trainers?.find((t) => t.id === selectedTrainer);
   const price = calculatePrice();
+  const totalSteps = 4;
+
+  // Get already selected station IDs to prevent duplicates
+  const selectedStationIds = stationSelections.map((s) => s.stationId).filter(Boolean);
 
   return (
     <div className="min-h-screen bg-background">
@@ -230,7 +281,7 @@ export default function BookSession() {
 
         {/* Progress Steps */}
         <div className="flex items-center justify-center gap-4 mb-8">
-          {[1, 2, 3].map((s) => (
+          {[1, 2, 3, 4].map((s) => (
             <div key={s} className="flex items-center gap-2">
               <div
                 className={`step-indicator ${
@@ -239,9 +290,9 @@ export default function BookSession() {
               >
                 {s < step ? <CheckCircle2 className="h-5 w-5" /> : s}
               </div>
-              {s < 3 && (
+              {s < totalSteps && (
                 <div
-                  className={`w-12 h-0.5 ${
+                  className={`w-8 sm:w-12 h-0.5 ${
                     s < step ? "bg-accent" : "bg-muted"
                   }`}
                 />
@@ -257,11 +308,13 @@ export default function BookSession() {
               {step === 1 && "Choose Your Trainer"}
               {step === 2 && "Select Session Mode"}
               {step === 3 && "Configure Your Session"}
+              {step === 4 && "Select Stations"}
             </CardTitle>
             <CardDescription>
               {step === 1 && "Select an expert trainer for your session"}
               {step === 2 && "Choose between 1:1 or group learning"}
               {step === 3 && "Customize your session details"}
+              {step === 4 && "Choose the specific stations you want to practice"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -401,7 +454,7 @@ export default function BookSession() {
                         <Label className="text-base font-semibold mb-3 block">Number of Stations</Label>
                         <RadioGroup
                           value={stations.toString()}
-                          onValueChange={(v) => setStations(parseInt(v))}
+                          onValueChange={(v) => handleStationsChange(parseInt(v))}
                           className="flex gap-4"
                         >
                           {getStationOptions().map((s) => (
@@ -469,7 +522,7 @@ export default function BookSession() {
                           <Label className="text-base font-semibold mb-3 block">Number of Stations</Label>
                           <RadioGroup
                             value={stations.toString()}
-                            onValueChange={(v) => setStations(parseInt(v))}
+                            onValueChange={(v) => handleStationsChange(parseInt(v))}
                             className="flex gap-4"
                           >
                             {[1, 2, 3].map((s) => (
@@ -524,11 +577,50 @@ export default function BookSession() {
                 )}
               </div>
             )}
+
+            {/* Step 4: Station Selection */}
+            {step === 4 && (
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  {stationSelections.map((selection, index) => (
+                    <StationSelector
+                      key={index}
+                      index={index}
+                      selection={selection}
+                      onChange={(s) => updateStationSelection(index, s)}
+                      excludeStationIds={selectedStationIds}
+                    />
+                  ))}
+                </div>
+
+                {/* Recording Consent */}
+                <div className="p-4 rounded-lg border border-amber-500/50 bg-amber-500/10">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="recording-consent"
+                      checked={recordingConsent}
+                      onCheckedChange={(checked) => setRecordingConsent(checked as boolean)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <Label htmlFor="recording-consent" className="font-medium flex items-center gap-2 cursor-pointer">
+                        <Video className="h-4 w-4" />
+                        Recording Consent
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        I consent to session recording. The recording will be shared automatically 
+                        with me after the session and will be deleted after 10 days.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Summary & Price */}
-        {price > 0 && step === 3 && (
+        {price > 0 && step >= 3 && (
           <Card className="mb-6 border-primary/30 bg-primary/5">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -568,7 +660,7 @@ export default function BookSession() {
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Creating...
               </>
-            ) : step === 3 ? (
+            ) : step === 4 ? (
               <>
                 Book & Schedule
                 <ArrowRight className="h-4 w-4" />

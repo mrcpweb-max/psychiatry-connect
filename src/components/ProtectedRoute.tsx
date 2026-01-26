@@ -3,13 +3,15 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
+type AppRole = "admin" | "candidate" | "trainer";
+
 interface ProtectedRouteProps {
   children: ReactNode;
-  requireAdmin?: boolean;
+  allowedRoles?: AppRole[];
 }
 
-export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
-  const { user, isAdmin, loading } = useAuth();
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+  const { user, role, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -24,9 +26,27 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  if (requireAdmin && !isAdmin) {
+  // If no specific roles required, allow any authenticated user
+  if (!allowedRoles || allowedRoles.length === 0) {
+    return <>{children}</>;
+  }
+
+  // Check if user's role is in the allowed roles
+  if (role && allowedRoles.includes(role)) {
+    return <>{children}</>;
+  }
+
+  // Redirect to appropriate dashboard based on role
+  if (role === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
+  if (role === "trainer") {
+    return <Navigate to="/trainer" replace />;
+  }
+  if (role === "candidate") {
     return <Navigate to="/dashboard" replace />;
   }
 
-  return <>{children}</>;
+  // Default fallback
+  return <Navigate to="/dashboard" replace />;
 }
