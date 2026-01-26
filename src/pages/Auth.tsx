@@ -35,6 +35,16 @@ export default function Auth() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    const redirectByRole = (role: string | null) => {
+      if (role === "admin") {
+        navigate("/admin");
+      } else if (role === "trainer") {
+        navigate("/trainer");
+      } else {
+        navigate("/dashboard");
+      }
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
@@ -46,11 +56,7 @@ export default function Auth() {
               .eq("user_id", session.user.id)
               .maybeSingle();
 
-            if (roleData?.role === "admin") {
-              navigate("/admin");
-            } else {
-              navigate("/dashboard");
-            }
+            redirectByRole(roleData?.role || null);
           }, 0);
         }
       }
@@ -65,11 +71,7 @@ export default function Auth() {
           .eq("user_id", session.user.id)
           .maybeSingle();
 
-        if (roleData?.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/dashboard");
-        }
+        redirectByRole(roleData?.role || null);
       }
     });
 

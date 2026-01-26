@@ -16,6 +16,7 @@ import Dashboard from "./pages/Dashboard";
 import BookSession from "./pages/BookSession";
 import ScheduleSession from "./pages/ScheduleSession";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import TrainerDashboard from "./pages/trainer/TrainerDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,26 +41,33 @@ const App = () => (
             {/* Auth page (no layout) */}
             <Route path="/auth" element={<Auth />} />
             
-            {/* Protected pages */}
+            {/* Protected pages - Candidates */}
             <Route path="/dashboard" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["candidate"]}>
                 <Dashboard />
               </ProtectedRoute>
             } />
             <Route path="/book" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["candidate"]}>
                 <BookSession />
               </ProtectedRoute>
             } />
             <Route path="/schedule/:bookingId" element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["candidate"]}>
                 <ScheduleSession />
+              </ProtectedRoute>
+            } />
+            
+            {/* Trainer pages */}
+            <Route path="/trainer" element={
+              <ProtectedRoute allowedRoles={["trainer"]}>
+                <TrainerDashboard />
               </ProtectedRoute>
             } />
             
             {/* Admin pages */}
             <Route path="/admin" element={
-              <ProtectedRoute requireAdmin>
+              <ProtectedRoute allowedRoles={["admin"]}>
                 <AdminDashboard />
               </ProtectedRoute>
             } />

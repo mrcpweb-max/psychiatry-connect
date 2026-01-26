@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserBookings } from "@/hooks/useBookings";
+import { useUserRecordings } from "@/hooks/useRecordings";
 import {
   Brain,
   Calendar,
@@ -16,12 +17,14 @@ import {
   Settings,
   Loader2,
   CalendarCheck,
+  Video,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
   const { data: bookings, isLoading: bookingsLoading } = useUserBookings();
+  const { data: recordings, isLoading: recordingsLoading } = useUserRecordings();
 
   const handleSignOut = async () => {
     await signOut();
@@ -31,6 +34,10 @@ export default function Dashboard() {
 
   const upcomingBookings = bookings?.filter(
     (b) => b.status !== "cancelled" && b.status !== "completed"
+  ) || [];
+
+  const activeRecordings = recordings?.filter(
+    (r: any) => r.status === "active" && new Date(r.expiry_date) > new Date()
   ) || [];
 
   const quickActions = [
@@ -229,6 +236,64 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
+
+        {/* Session Recordings */}
+        {activeRecordings.length > 0 && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Video className="h-5 w-5" />
+                Session Recordings
+              </CardTitle>
+              <CardDescription>Access your recent session recordings</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {activeRecordings.map((recording: any) => {
+                  const daysLeft = differenceInDays(new Date(recording.expiry_date), new Date());
+                  return (
+                    <div
+                      key={recording.id}
+                      className="flex items-center justify-between p-4 rounded-lg border border-border"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Video className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold">
+                            {recording.booking?.session_mode === "one_on_one" ? "1:1" : "Group"}{" "}
+                            {recording.booking?.session_type === "mock" ? "Mock Examination" : "Learning Session"}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            with {recording.booking?.trainer?.name || "Trainer"} •{" "}
+                            {recording.booking?.scheduled_at
+                              ? format(new Date(recording.booking.scheduled_at), "MMM d, yyyy")
+                              : "—"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Badge variant={daysLeft <= 3 ? "destructive" : "secondary"}>
+                          {daysLeft} day{daysLeft !== 1 ? "s" : ""} left
+                        </Badge>
+                        <a
+                          href={recording.recording_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button size="sm" variant="outline">
+                            Watch
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   );
