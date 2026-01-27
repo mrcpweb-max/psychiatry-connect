@@ -12,6 +12,7 @@ import Sessions from "./pages/Sessions";
 import FAQ from "./pages/FAQ";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
+import BecomeTrainer from "./pages/BecomeTrainer";
 import Dashboard from "./pages/Dashboard";
 import BookSession from "./pages/BookSession";
 import ScheduleSession from "./pages/ScheduleSession";
@@ -38,8 +39,9 @@ const App = () => (
               <Route path="/contact" element={<Contact />} />
             </Route>
             
-            {/* Auth page (no layout) */}
+            {/* Auth pages (no layout) */}
             <Route path="/auth" element={<Auth />} />
+            <Route path="/become-trainer" element={<BecomeTrainer />} />
             
             {/* Protected pages - Candidates */}
             <Route path="/dashboard" element={

@@ -10,6 +10,14 @@ export interface Trainer {
   calendly_url: string | null;
   avatar_url: string | null;
   is_active: boolean;
+  status: "pending" | "approved" | "rejected" | null;
+  qualifications: string | null;
+  years_experience: number | null;
+  areas_of_expertise: string[] | null;
+  session_types_offered: string[] | null;
+  calendar_type: string | null;
+  applied_at: string | null;
+  user_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -24,7 +32,7 @@ export function useTrainers(activeOnly = true) {
         .order("name");
 
       if (activeOnly) {
-        query = query.eq("is_active", true);
+        query = query.eq("is_active", true).eq("status", "approved");
       }
 
       const { data, error } = await query;
@@ -58,7 +66,7 @@ export function useCreateTrainer() {
     mutationFn: async (trainer: Omit<Trainer, "id" | "created_at" | "updated_at">) => {
       const { data, error } = await supabase
         .from("trainers")
-        .insert(trainer)
+        .insert(trainer as any)
         .select()
         .single();
       if (error) throw error;
@@ -77,7 +85,7 @@ export function useUpdateTrainer() {
     mutationFn: async ({ id, ...updates }: Partial<Trainer> & { id: string }) => {
       const { data, error } = await supabase
         .from("trainers")
-        .update(updates)
+        .update(updates as any)
         .eq("id", id)
         .select()
         .single();

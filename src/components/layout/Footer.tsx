@@ -7,6 +7,7 @@ const footerLinks = {
     { label: "Sessions", href: "/sessions" },
     { label: "Pricing", href: "/sessions" },
     { label: "FAQ", href: "/faq" },
+    { label: "Become a Trainer", href: "/become-trainer" },
   ],
   support: [
     { label: "Contact Us", href: "/contact" },

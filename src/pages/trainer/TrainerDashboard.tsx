@@ -180,16 +180,28 @@ export default function TrainerDashboard() {
         {/* Profile Overview */}
         <Card className="mb-8">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full gradient-bg-primary flex items-center justify-center">
-                <User className="h-8 w-8 text-primary-foreground" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full gradient-bg-primary flex items-center justify-center">
+                  <User className="h-8 w-8 text-primary-foreground" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">{trainer.name}</h2>
+                  <p className="text-muted-foreground">{trainer.specialty || "MRCPsych Trainer"}</p>
+                  {trainer.email && <p className="text-sm text-muted-foreground">{trainer.email}</p>}
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-bold">{trainer.name}</h2>
-                <p className="text-muted-foreground">{trainer.specialty || "MRCPsych Trainer"}</p>
-                {trainer.email && <p className="text-sm text-muted-foreground">{trainer.email}</p>}
-              </div>
+              <Badge variant={(trainer as any).status === "approved" ? "default" : (trainer as any).status === "pending" ? "secondary" : "destructive"}>
+                {(trainer as any).status === "approved" ? "Approved" : (trainer as any).status === "pending" ? "Pending Approval" : "Rejected"}
+              </Badge>
             </div>
+            {(trainer as any).status === "pending" && (
+              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-sm text-amber-800">
+                  Your application is pending admin review. You'll be able to receive bookings once approved.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
