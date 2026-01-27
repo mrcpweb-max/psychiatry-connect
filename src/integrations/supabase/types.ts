@@ -241,6 +241,10 @@ export type Database = {
           group_size: number | null
           id: string
           provider_ref: string | null
+          refund_amount: number | null
+          refund_reason: string | null
+          refunded_at: string | null
+          refunded_by: string | null
           session_mode: Database["public"]["Enums"]["session_mode"]
           session_type: Database["public"]["Enums"]["session_type"]
           stations: number
@@ -256,6 +260,10 @@ export type Database = {
           group_size?: number | null
           id?: string
           provider_ref?: string | null
+          refund_amount?: number | null
+          refund_reason?: string | null
+          refunded_at?: string | null
+          refunded_by?: string | null
           session_mode: Database["public"]["Enums"]["session_mode"]
           session_type: Database["public"]["Enums"]["session_type"]
           stations?: number
@@ -271,6 +279,10 @@ export type Database = {
           group_size?: number | null
           id?: string
           provider_ref?: string | null
+          refund_amount?: number | null
+          refund_reason?: string | null
+          refunded_at?: string | null
+          refunded_by?: string | null
           session_mode?: Database["public"]["Enums"]["session_mode"]
           session_type?: Database["public"]["Enums"]["session_type"]
           stations?: number
@@ -281,6 +293,13 @@ export type Database = {
           {
             foreignKeyName: "payments_candidate_id_fkey"
             columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_refunded_by_fkey"
+            columns: ["refunded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -558,43 +577,64 @@ export type Database = {
       }
       trainers: {
         Row: {
+          applied_at: string | null
+          areas_of_expertise: string[] | null
           avatar_url: string | null
           bio: string | null
+          calendar_type: string | null
           calendly_url: string | null
           created_at: string
           email: string | null
           id: string
           is_active: boolean
           name: string
+          qualifications: string | null
+          session_types_offered: string[] | null
           specialty: string | null
+          status: Database["public"]["Enums"]["trainer_status"] | null
           updated_at: string
           user_id: string | null
+          years_experience: number | null
         }
         Insert: {
+          applied_at?: string | null
+          areas_of_expertise?: string[] | null
           avatar_url?: string | null
           bio?: string | null
+          calendar_type?: string | null
           calendly_url?: string | null
           created_at?: string
           email?: string | null
           id?: string
           is_active?: boolean
           name: string
+          qualifications?: string | null
+          session_types_offered?: string[] | null
           specialty?: string | null
+          status?: Database["public"]["Enums"]["trainer_status"] | null
           updated_at?: string
           user_id?: string | null
+          years_experience?: number | null
         }
         Update: {
+          applied_at?: string | null
+          areas_of_expertise?: string[] | null
           avatar_url?: string | null
           bio?: string | null
+          calendar_type?: string | null
           calendly_url?: string | null
           created_at?: string
           email?: string | null
           id?: string
           is_active?: boolean
           name?: string
+          qualifications?: string | null
+          session_types_offered?: string[] | null
           specialty?: string | null
+          status?: Database["public"]["Enums"]["trainer_status"] | null
           updated_at?: string
           user_id?: string | null
+          years_experience?: number | null
         }
         Relationships: []
       }
@@ -646,6 +686,7 @@ export type Database = {
       payment_status: "pending" | "completed" | "refunded" | "failed"
       session_mode: "one_on_one" | "group"
       session_type: "mock" | "learning"
+      trainer_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -778,6 +819,7 @@ export const Constants = {
       payment_status: ["pending", "completed", "refunded", "failed"],
       session_mode: ["one_on_one", "group"],
       session_type: ["mock", "learning"],
+      trainer_status: ["pending", "approved", "rejected"],
     },
   },
 } as const

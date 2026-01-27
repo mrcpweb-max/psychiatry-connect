@@ -4,83 +4,43 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
 import { useAllBookings, useUpdateBooking } from "@/hooks/useBookings";
-import { useTrainers, useCreateTrainer, useUpdateTrainer } from "@/hooks/useTrainers";
+import { useTrainers } from "@/hooks/useTrainers";
 import { useContactSubmissions, useMarkContactRead } from "@/hooks/useContactSubmissions";
-import { useStationCategories, useStationSubcategories, useAllStations } from "@/hooks/useStations";
+import { useAllStations } from "@/hooks/useStations";
 import { useRecordings, useRevokeRecording, useAppSettings } from "@/hooks/useRecordings";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import {
-  Brain, Users, Calendar, CreditCard, TrendingUp, LogOut,
-  UserCog, BookOpen, DollarSign, RefreshCw, Mail, Shield,
-  BarChart3, Clock, Loader2, Plus, Eye, X, Video, Layers,
-  FolderTree, Settings, Ban,
+  Brain, Calendar, LogOut,
+  UserCog, DollarSign, RefreshCw, Mail, Shield,
+  Loader2, Eye, Video, Layers,
+  Settings, Ban, CreditCard,
 } from "lucide-react";
-import {
-  Dialog, DialogContent, DialogDescription, DialogHeader,
-  DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
+// Import new management components
+import { StationsManagement } from "@/components/admin/StationsManagement";
+import { TrainersManagement } from "@/components/admin/TrainersManagement";
+import { PaymentsManagement } from "@/components/admin/PaymentsManagement";
 
 export default function AdminDashboard() {
   const { signOut } = useAuth();
   const { toast } = useToast();
   const { data: bookings, isLoading: bookingsLoading, refetch: refetchBookings } = useAllBookings();
-  const { data: trainers, isLoading: trainersLoading, refetch: refetchTrainers } = useTrainers(false);
+  const { data: trainers } = useTrainers(false);
   const { data: contacts, isLoading: contactsLoading } = useContactSubmissions();
-  const { data: categories } = useStationCategories();
-  const { data: subcategories } = useStationSubcategories();
-  const { data: stations, isLoading: stationsLoading } = useAllStations();
+  const { data: stations } = useAllStations();
   const { data: recordings, isLoading: recordingsLoading } = useRecordings();
   const { data: appSettings } = useAppSettings();
   
-  const createTrainer = useCreateTrainer();
-  const updateTrainer = useUpdateTrainer();
   const updateBooking = useUpdateBooking();
   const markRead = useMarkContactRead();
   const revokeRecording = useRevokeRecording();
 
-  const [addTrainerOpen, setAddTrainerOpen] = useState(false);
-  const [newTrainer, setNewTrainer] = useState({ name: "", email: "", bio: "", specialty: "", calendly_url: "" });
-
   const handleSignOut = async () => {
     await signOut();
-  };
-
-  const handleAddTrainer = async () => {
-    try {
-      await createTrainer.mutateAsync({ ...newTrainer, is_active: true, avatar_url: null });
-      toast({ title: "Trainer added successfully" });
-      setAddTrainerOpen(false);
-      setNewTrainer({ name: "", email: "", bio: "", specialty: "", calendly_url: "" });
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
-  };
-
-  const toggleTrainerActive = async (id: string, isActive: boolean) => {
-    await updateTrainer.mutateAsync({ id, is_active: !isActive });
-    toast({ title: isActive ? "Trainer deactivated" : "Trainer activated" });
   };
 
   const cancelBooking = async (id: string) => {
@@ -97,9 +57,9 @@ export default function AdminDashboard() {
     }
   };
 
-  const totalRevenue = bookings?.filter(b => b.status !== "cancelled").length || 0;
   const unreadContacts = contacts?.filter(c => !c.is_read).length || 0;
   const activeRecordings = recordings?.filter(r => r.status === "active").length || 0;
+  const pendingTrainers = trainers?.filter((t: any) => t.status === "pending").length || 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -125,11 +85,11 @@ export default function AdminDashboard() {
       <main className="container py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage bookings, trainers, stations, and recordings.</p>
+          <p className="text-muted-foreground">Manage bookings, trainers, stations, payments, and recordings.</p>
         </div>
 
         {/* KPIs */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
           <Card>
             <CardContent className="pt-6">
               <Calendar className="h-5 w-5 text-muted-foreground mb-2" />
@@ -142,6 +102,13 @@ export default function AdminDashboard() {
               <UserCog className="h-5 w-5 text-muted-foreground mb-2" />
               <p className="text-2xl font-bold">{trainers?.length || 0}</p>
               <p className="text-sm text-muted-foreground">Trainers</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <UserCog className="h-5 w-5 text-amber-500 mb-2" />
+              <p className="text-2xl font-bold">{pendingTrainers}</p>
+              <p className="text-sm text-muted-foreground">Pending Approval</p>
             </CardContent>
           </Card>
           <Card>
@@ -170,8 +137,11 @@ export default function AdminDashboard() {
         <Tabs defaultValue="bookings" className="space-y-6">
           <TabsList className="flex-wrap h-auto gap-2">
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="trainers">Trainers</TabsTrigger>
+            <TabsTrigger value="trainers">
+              Trainers {pendingTrainers > 0 && <Badge className="ml-2" variant="secondary">{pendingTrainers}</Badge>}
+            </TabsTrigger>
             <TabsTrigger value="stations">Stations</TabsTrigger>
+            <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="recordings">Recordings</TabsTrigger>
             <TabsTrigger value="contacts">
               Contacts {unreadContacts > 0 && <Badge className="ml-2">{unreadContacts}</Badge>}
@@ -221,136 +191,19 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Trainers Tab */}
+          {/* Trainers Tab - New Component */}
           <TabsContent value="trainers">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Trainer Management</CardTitle>
-                  <CardDescription>Add, edit, and manage trainer accounts</CardDescription>
-                </div>
-                <Dialog open={addTrainerOpen} onOpenChange={setAddTrainerOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="gradient-bg-primary border-0"><Plus className="h-4 w-4 mr-2" />Add Trainer</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add New Trainer</DialogTitle>
-                      <DialogDescription>
-                        Create a trainer profile. They can log in once you link their user account.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div><Label>Name</Label><Input value={newTrainer.name} onChange={(e) => setNewTrainer({...newTrainer, name: e.target.value})} /></div>
-                      <div><Label>Email</Label><Input value={newTrainer.email} onChange={(e) => setNewTrainer({...newTrainer, email: e.target.value})} /></div>
-                      <div><Label>Specialty</Label><Input value={newTrainer.specialty} onChange={(e) => setNewTrainer({...newTrainer, specialty: e.target.value})} /></div>
-                      <div><Label>Calendly URL</Label><Input value={newTrainer.calendly_url} onChange={(e) => setNewTrainer({...newTrainer, calendly_url: e.target.value})} /></div>
-                      <div><Label>Bio</Label><Textarea value={newTrainer.bio} onChange={(e) => setNewTrainer({...newTrainer, bio: e.target.value})} /></div>
-                      <Button onClick={handleAddTrainer} disabled={!newTrainer.name || createTrainer.isPending} className="w-full">
-                        {createTrainer.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add Trainer"}
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent>
-                {trainersLoading ? (
-                  <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
-                ) : trainers?.length ? (
-                  <div className="space-y-3">
-                    {trainers.map((t) => (
-                      <div key={t.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{t.name}</p>
-                          <p className="text-sm text-muted-foreground">{t.specialty || "MRCPsych Trainer"}</p>
-                          <p className="text-xs text-muted-foreground">{t.email || "No email"}</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Switch checked={t.is_active} onCheckedChange={() => toggleTrainerActive(t.id, t.is_active)} />
-                          <span className="text-sm w-16">{t.is_active ? "Active" : "Inactive"}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-center py-8 text-muted-foreground">No trainers yet</p>
-                )}
-              </CardContent>
-            </Card>
+            <TrainersManagement />
           </TabsContent>
 
-          {/* Stations Tab */}
+          {/* Stations Tab - New Component */}
           <TabsContent value="stations">
-            <div className="grid gap-6">
-              {/* Categories Overview */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FolderTree className="h-5 w-5" />
-                    Station Categories
-                  </CardTitle>
-                  <CardDescription>Manage exam station categories and subcategories</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {categories?.map((cat) => (
-                      <div key={cat.id} className="p-4 border rounded-lg">
-                        <h4 className="font-semibold mb-2">{cat.name}</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {subcategories
-                            ?.filter((sub: any) => sub.category_id === cat.id)
-                            .map((sub: any) => (
-                              <Badge key={sub.id} variant="secondary">
-                                {sub.name}
-                              </Badge>
-                            ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            <StationsManagement />
+          </TabsContent>
 
-              {/* Stations List */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>All Stations</CardTitle>
-                  <CardDescription>View and manage individual stations</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {stationsLoading ? (
-                    <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
-                  ) : stations?.length ? (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Station Name</TableHead>
-                          <TableHead>Category</TableHead>
-                          <TableHead>Sub-category</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {stations.map((station: any) => (
-                          <TableRow key={station.id}>
-                            <TableCell className="font-medium">{station.name}</TableCell>
-                            <TableCell>{station.subcategory?.category?.name || "—"}</TableCell>
-                            <TableCell>{station.subcategory?.name || "—"}</TableCell>
-                            <TableCell>
-                              <Badge variant={station.is_active ? "default" : "secondary"}>
-                                {station.is_active ? "Active" : "Inactive"}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <p className="text-center py-8 text-muted-foreground">No stations found</p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+          {/* Payments Tab - New Component */}
+          <TabsContent value="payments">
+            <PaymentsManagement />
           </TabsContent>
 
           {/* Recordings Tab */}
