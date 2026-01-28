@@ -199,6 +199,13 @@ export type Database = {
             referencedRelation: "trainers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "bookings_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       contact_submissions: {
@@ -427,6 +434,13 @@ export type Database = {
             referencedRelation: "trainers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "scheduling_tokens_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       station_categories: {
@@ -541,6 +555,13 @@ export type Database = {
             referencedRelation: "trainers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "trainer_availability_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       trainer_blocked_dates: {
@@ -571,6 +592,13 @@ export type Database = {
             columns: ["trainer_id"]
             isOneToOne: false
             referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_blocked_dates_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers_public"
             referencedColumns: ["id"]
           },
         ]
@@ -669,7 +697,66 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      trainers_public: {
+        Row: {
+          applied_at: string | null
+          areas_of_expertise: string[] | null
+          avatar_url: string | null
+          bio: string | null
+          calendar_type: string | null
+          calendly_url: string | null
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          qualifications: string | null
+          session_types_offered: string[] | null
+          specialty: string | null
+          status: Database["public"]["Enums"]["trainer_status"] | null
+          updated_at: string | null
+          user_id: string | null
+          years_experience: number | null
+        }
+        Insert: {
+          applied_at?: string | null
+          areas_of_expertise?: string[] | null
+          avatar_url?: string | null
+          bio?: string | null
+          calendar_type?: string | null
+          calendly_url?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          qualifications?: string | null
+          session_types_offered?: string[] | null
+          specialty?: string | null
+          status?: Database["public"]["Enums"]["trainer_status"] | null
+          updated_at?: string | null
+          user_id?: string | null
+          years_experience?: number | null
+        }
+        Update: {
+          applied_at?: string | null
+          areas_of_expertise?: string[] | null
+          avatar_url?: string | null
+          bio?: string | null
+          calendar_type?: string | null
+          calendly_url?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          qualifications?: string | null
+          session_types_offered?: string[] | null
+          specialty?: string | null
+          status?: Database["public"]["Enums"]["trainer_status"] | null
+          updated_at?: string | null
+          user_id?: string | null
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_role: {
