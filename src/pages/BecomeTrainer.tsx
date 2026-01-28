@@ -163,8 +163,8 @@ export default function BecomeTrainer() {
 
       if (signInError) throw signInError;
 
-      // 3. Update user role to trainer
-      await supabase.from("user_roles").update({ role: "trainer" }).eq("user_id", authData.user.id);
+      // NOTE: Role remains 'candidate' until admin approves the trainer application
+      // The admin approval workflow will change the role to 'trainer' when approved
 
       // 4. Create trainer profile with pending status
       const { error: trainerError } = await supabase.from("trainers").insert({
