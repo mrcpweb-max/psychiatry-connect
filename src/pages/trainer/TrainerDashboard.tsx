@@ -47,6 +47,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import PendingApproval from "./PendingApproval";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -145,6 +146,12 @@ export default function TrainerDashboard() {
         </Card>
       </div>
     );
+  }
+
+  // Redirect pending or rejected trainers to the waiting page
+  const trainerStatus = (trainer as any).status;
+  if (trainerStatus === "pending" || trainerStatus === "rejected") {
+    return <PendingApproval status={trainerStatus} trainerName={trainer.name} />;
   }
 
   return (
