@@ -55,11 +55,26 @@ export function Navbar() {
 
         {/* Auth Buttons */}
         <div className="hidden md:flex items-center gap-3">
-          <Link to="/auth">
-            <Button variant="ghost" size="sm">
-              Sign In
-            </Button>
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1">
+                Sign In
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link to="/auth" className="w-full cursor-pointer">
+                  Candidate Login
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/auth?type=trainer" className="w-full cursor-pointer">
+                  Trainer Login
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Link to="/auth?mode=signup">
             <Button size="sm" className="gradient-bg-primary border-0">
               Get Started
@@ -97,7 +112,12 @@ export function Navbar() {
             <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-border">
               <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="outline" className="w-full">
-                  Sign In
+                  Candidate Login
+                </Button>
+              </Link>
+              <Link to="/auth?type=trainer" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="outline" className="w-full">
+                  Trainer Login
                 </Button>
               </Link>
               <Link to="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>

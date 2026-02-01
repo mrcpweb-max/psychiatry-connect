@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Brain, Mail, Lock, User, ArrowLeft, Loader2 } from "lucide-react";
+import { Brain, Mail, Lock, User, ArrowLeft, Loader2, GraduationCap } from "lucide-react";
 import { z } from "zod";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -18,6 +19,8 @@ const signupSchema = loginSchema.extend({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
 });
 
+type UserType = "candidate" | "trainer";
+
 export default function Auth() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -25,6 +28,9 @@ export default function Auth() {
   
   const [mode, setMode] = useState<"login" | "signup">(
     searchParams.get("mode") === "signup" ? "signup" : "login"
+  );
+  const [userType, setUserType] = useState<UserType>(
+    searchParams.get("type") === "trainer" ? "trainer" : "candidate"
   );
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -138,12 +144,40 @@ export default function Auth() {
           setMode("login");
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: authData, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
         });
 
         if (error) throw error;
+
+        // For trainer login, verify they have trainer role or pending application
+        if (userType === "trainer" && authData.user) {
+          const { data: roleData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", authData.user.id)
+            .maybeSingle();
+          
+          // Check if they have a trainer profile (even if role is still candidate - pending approval)
+          const { data: trainerData } = await supabase
+            .from("trainers")
+            .select("id, status")
+            .eq("user_id", authData.user.id)
+            .maybeSingle();
+
+          if (roleData?.role !== "trainer" && roleData?.role !== "admin" && !trainerData) {
+            // Not a trainer, sign them out and show error
+            await supabase.auth.signOut();
+            toast({
+              title: "Not a Trainer Account",
+              description: "This account is not registered as a trainer. Please use candidate login or apply to become a trainer.",
+              variant: "destructive",
+            });
+            setIsLoading(false);
+            return;
+          }
+        }
 
         toast({
           title: "Welcome back!",
@@ -200,6 +234,22 @@ export default function Auth() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* User Type Tabs - Only show for login */}
+            {mode === "login" && (
+              <Tabs value={userType} onValueChange={(v) => setUserType(v as UserType)} className="mb-6">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="candidate" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Candidate
+                  </TabsTrigger>
+                  <TabsTrigger value="trainer" className="flex items-center gap-2">
+                    <GraduationCap className="h-4 w-4" />
+                    Trainer
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === "signup" && (
                 <div className="space-y-2">
@@ -273,7 +323,7 @@ export default function Auth() {
                     {mode === "login" ? "Signing in..." : "Creating account..."}
                   </>
                 ) : mode === "login" ? (
-                  "Sign In"
+                  `Sign In${userType === "trainer" ? " as Trainer" : ""}`
                 ) : (
                   "Create Account"
                 )}
@@ -282,16 +332,29 @@ export default function Auth() {
 
             <div className="mt-6 text-center text-sm">
               {mode === "login" ? (
-                <p className="text-muted-foreground">
-                  Don't have an account?{" "}
-                  <button
-                    type="button"
-                    onClick={() => setMode("signup")}
-                    className="text-primary font-medium hover:underline"
-                  >
-                    Sign up
-                  </button>
-                </p>
+                <div className="space-y-3">
+                  <p className="text-muted-foreground">
+                    Don't have an account?{" "}
+                    <button
+                      type="button"
+                      onClick={() => setMode("signup")}
+                      className="text-primary font-medium hover:underline"
+                    >
+                      Sign up
+                    </button>
+                  </p>
+                  {userType === "trainer" && (
+                    <p className="text-muted-foreground">
+                      Want to become a trainer?{" "}
+                      <Link
+                        to="/become-trainer"
+                        className="text-primary font-medium hover:underline"
+                      >
+                        Apply here
+                      </Link>
+                    </p>
+                  )}
+                </div>
               ) : (
                 <p className="text-muted-foreground">
                   Already have an account?{" "}
