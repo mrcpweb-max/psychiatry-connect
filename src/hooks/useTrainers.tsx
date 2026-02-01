@@ -22,13 +22,20 @@ export interface Trainer {
   updated_at: string;
 }
 
+// Public trainer fields - excludes email for privacy
+const PUBLIC_TRAINER_FIELDS = `
+  id, name, bio, specialty, calendly_url, avatar_url, is_active, status,
+  qualifications, years_experience, areas_of_expertise, session_types_offered,
+  calendar_type, applied_at, user_id, created_at, updated_at
+`;
+
 export function useTrainers(activeOnly = true) {
   return useQuery({
     queryKey: ["trainers", { activeOnly }],
     queryFn: async () => {
       let query = supabase
         .from("trainers")
-        .select("*")
+        .select(PUBLIC_TRAINER_FIELDS)
         .order("name");
 
       if (activeOnly) {
@@ -37,7 +44,8 @@ export function useTrainers(activeOnly = true) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as Trainer[];
+      // Email will be null for public queries
+      return (data || []).map(d => ({ ...d, email: null })) as Trainer[];
     },
   });
 }
@@ -49,11 +57,12 @@ export function useTrainer(id: string | undefined) {
       if (!id) return null;
       const { data, error } = await supabase
         .from("trainers")
-        .select("*")
+        .select(PUBLIC_TRAINER_FIELDS)
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
-      return data as Trainer | null;
+      // Email will be null for public queries
+      return data ? { ...data, email: null } as Trainer : null;
     },
     enabled: !!id,
   });

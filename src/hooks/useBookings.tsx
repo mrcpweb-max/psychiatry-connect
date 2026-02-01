@@ -87,6 +87,9 @@ function transformBookingData(dbData: any): Booking {
   };
 }
 
+// Trainer fields to join - excludes email for privacy
+const TRAINER_JOIN_FIELDS = "id, name, specialty, calendly_url";
+
 export function useUserBookings() {
   const { user } = useAuth();
 
@@ -99,7 +102,7 @@ export function useUserBookings() {
         .from("bookings")
         .select(`
           *,
-          trainer:trainers(id, name, specialty, calendly_url)
+          trainer:trainers(${TRAINER_JOIN_FIELDS})
         `)
         .eq("candidate_id", user.id)
         .order("created_at", { ascending: false });
@@ -119,7 +122,7 @@ export function useAllBookings() {
         .from("bookings")
         .select(`
           *,
-          trainer:trainers(id, name, specialty, calendly_url),
+          trainer:trainers(${TRAINER_JOIN_FIELDS}),
           profile:profiles(id, full_name, email)
         `)
         .order("created_at", { ascending: false });
@@ -169,7 +172,7 @@ export function useCreateBooking() {
         })
         .select(`
           *,
-          trainer:trainers(id, name, specialty, calendly_url)
+          trainer:trainers(${TRAINER_JOIN_FIELDS})
         `)
         .single();
 

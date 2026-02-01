@@ -19,6 +19,13 @@ export interface TrainerBlockedDate {
   created_at: string;
 }
 
+// Trainers viewing their own profile can see all fields including email
+const TRAINER_SELF_FIELDS = `
+  id, name, email, bio, specialty, calendly_url, avatar_url, is_active, status,
+  qualifications, years_experience, areas_of_expertise, session_types_offered,
+  calendar_type, applied_at, user_id, created_at, updated_at
+`;
+
 export function useTrainerProfile() {
   const { user } = useAuth();
 
@@ -29,7 +36,7 @@ export function useTrainerProfile() {
 
       const { data, error } = await supabase
         .from("trainers")
-        .select("*")
+        .select(TRAINER_SELF_FIELDS)
         .eq("user_id", user.id)
         .maybeSingle();
 
