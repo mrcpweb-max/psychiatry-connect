@@ -334,6 +334,14 @@ export default function Auth() {
               {mode === "login" ? (
                 <div className="space-y-3">
                   <p className="text-muted-foreground">
+                    <Link
+                      to="/forgot-password"
+                      className="text-primary font-medium hover:underline"
+                    >
+                      Forgot your password?
+                    </Link>
+                  </p>
+                  <p className="text-muted-foreground">
                     Don't have an account?{" "}
                     <button
                       type="button"

@@ -12,6 +12,8 @@ import Sessions from "./pages/Sessions";
 import FAQ from "./pages/FAQ";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import BecomeTrainer from "./pages/BecomeTrainer";
 import Dashboard from "./pages/Dashboard";
 import BookSession from "./pages/BookSession";
@@ -41,6 +43,8 @@ const App = () => (
             
             {/* Auth pages (no layout) */}
             <Route path="/auth" element={<Auth />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/become-trainer" element={<BecomeTrainer />} />
             
             {/* Protected pages - Candidates */}
