@@ -21,6 +21,8 @@ import ScheduleSession from "./pages/ScheduleSession";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import TrainerDashboard from "./pages/trainer/TrainerDashboard";
 import NotFound from "./pages/NotFound";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,8 @@ const App = () => (
               <Route path="/sessions" element={<Sessions />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
             </Route>
             
             {/* Auth pages (no layout) */}
