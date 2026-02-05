@@ -9,8 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Brain, Mail, Lock, User, ArrowLeft, Loader2, GraduationCap, Calendar, CheckCircle2 } from "lucide-react";
+import { Brain, Mail, Lock, User, ArrowLeft, Loader2, GraduationCap, Calendar, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
+import heroBecomeTrainerImage from "@/assets/hero-become-trainer.jpg";
 
 const trainerSignupSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -247,15 +248,24 @@ export default function BecomeTrainer() {
   }
 
   return (
-    <div className="min-h-screen gradient-bg-hero flex flex-col">
-      <header className="p-4">
+    <div className="min-h-screen flex flex-col">
+      {/* Hero Background */}
+      <div className="absolute inset-0 h-72 overflow-hidden">
+        <img 
+          src={heroBecomeTrainerImage} 
+          alt="Expert psychiatry trainer" 
+          className="w-full h-full object-cover opacity-20"
+        />
+        <div className="absolute inset-0 gradient-bg-hero" />
+      </div>
+      
+      <header className="relative p-4">
         <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
           Back to Home
         </Link>
       </header>
-
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="relative flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">

@@ -13,6 +13,7 @@ import {
   Shield,
   Sparkles,
 } from "lucide-react";
+import heroHomeImage from "@/assets/hero-home.jpg";
 
 const features = [
   {
@@ -239,20 +240,17 @@ export default function Home() {
               </div>
             </div>
             <div className="relative">
-              <div className="aspect-square rounded-2xl gradient-bg-hero border border-border/50 p-8 flex items-center justify-center">
+              <div className="aspect-video rounded-2xl overflow-hidden border border-border/50 shadow-lg">
+                <img 
+                  src={heroHomeImage} 
+                  alt="MRCPsych coaching session" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="absolute -bottom-6 -right-6 bg-card rounded-xl p-4 shadow-lg border border-border">
                 <div className="text-center">
-                  <div className="w-24 h-24 mx-auto rounded-full gradient-bg-primary flex items-center justify-center mb-6">
-                    <Brain className="h-12 w-12 text-primary-foreground" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-2">Ready to Start?</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Join our community of successful candidates
-                  </p>
-                  <Link to="/auth?mode=signup">
-                    <Button className="gradient-bg-primary border-0">
-                      Create Account
-                    </Button>
-                  </Link>
+                  <div className="text-2xl font-bold text-primary">95%</div>
+                  <div className="text-sm text-muted-foreground">Pass Rate</div>
                 </div>
               </div>
             </div>
