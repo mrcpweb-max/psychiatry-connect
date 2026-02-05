@@ -7,6 +7,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ArrowRight, HelpCircle } from "lucide-react";
+import heroFaqImage from "@/assets/hero-faq.jpg";
 
 const faqCategories = [
   {
@@ -112,8 +113,15 @@ export default function FAQ() {
   return (
     <div className="flex flex-col">
       {/* Hero */}
-      <section className="gradient-bg-hero py-16 md:py-24">
-        <div className="container">
+      <section className="relative gradient-bg-hero py-16 md:py-24 overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <img 
+            src={heroFaqImage} 
+            alt="Medical support help desk" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="container relative">
           <div className="max-w-3xl mx-auto text-center">
             <div className="w-16 h-16 rounded-2xl gradient-bg-primary mx-auto mb-6 flex items-center justify-center">
               <HelpCircle className="h-8 w-8 text-primary-foreground" />

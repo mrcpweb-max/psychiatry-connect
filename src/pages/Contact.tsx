@@ -14,6 +14,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useSubmitContact } from "@/hooks/useContactSubmissions";
 import { Mail, Phone, Clock, Send, CheckCircle2, Loader2 } from "lucide-react";
+import heroContactImage from "@/assets/hero-contact.jpg";
 
 export default function Contact() {
   const { toast } = useToast();
@@ -75,8 +76,15 @@ export default function Contact() {
   return (
     <div className="flex flex-col">
       {/* Hero */}
-      <section className="gradient-bg-hero py-16 md:py-24">
-        <div className="container">
+      <section className="relative gradient-bg-hero py-16 md:py-24 overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <img 
+            src={heroContactImage} 
+            alt="Medical contact reception" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="container relative">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
               Contact Us

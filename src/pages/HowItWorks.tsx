@@ -9,6 +9,7 @@ import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
+import heroHowItWorksImage from "@/assets/hero-how-it-works.jpg";
 
 const steps = [
   {
@@ -80,8 +81,15 @@ export default function HowItWorks() {
   return (
     <div className="flex flex-col">
       {/* Hero */}
-      <section className="gradient-bg-hero py-16 md:py-24">
-        <div className="container">
+      <section className="relative gradient-bg-hero py-16 md:py-24 overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <img 
+            src={heroHowItWorksImage} 
+            alt="Medical education process" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="container relative">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
               How It Works
