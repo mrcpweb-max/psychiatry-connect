@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -66,6 +67,15 @@ export function TrainersManagement() {
         status: "approved" as any,
         is_active: true 
       });
+
+      // Update user role to 'trainer' if the trainer has a linked user account
+      if (trainer.user_id) {
+        await supabase
+          .from("user_roles")
+          .update({ role: "trainer" as any })
+          .eq("user_id", trainer.user_id);
+      }
+
       toast({ title: "Trainer approved", description: `${trainer.name} can now receive bookings.` });
       refetch();
     } catch (error: any) {
