@@ -243,8 +243,9 @@ export default function Home() {
               <div className="aspect-video rounded-2xl overflow-hidden border border-border/50 shadow-lg">
                 <img 
                   src={heroHomeImage} 
-                  alt="MRCPsych coaching session" 
+                  alt="Expert psychiatry trainer conducting a mock CASC coaching session online" 
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               </div>
               <div className="absolute -bottom-6 -right-6 bg-card rounded-xl p-4 shadow-lg border border-border">
