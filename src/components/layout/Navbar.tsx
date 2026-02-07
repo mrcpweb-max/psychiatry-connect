@@ -32,7 +32,7 @@ export function Navbar() {
             <Brain className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="hidden font-semibold text-lg sm:inline-block">
-            MRC Psychiatry
+            Online CASC Practice
           </span>
         </Link>
 

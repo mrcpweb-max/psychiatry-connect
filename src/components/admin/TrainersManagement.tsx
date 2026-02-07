@@ -90,6 +90,15 @@ export function TrainersManagement() {
         status: "rejected" as any,
         is_active: false 
       });
+
+      // Revert user role back to 'candidate'
+      if (trainer.user_id) {
+        await supabase
+          .from("user_roles")
+          .update({ role: "candidate" as any })
+          .eq("user_id", trainer.user_id);
+      }
+
       toast({ title: "Trainer rejected", description: `${trainer.name}'s application has been rejected.` });
       refetch();
     } catch (error: any) {

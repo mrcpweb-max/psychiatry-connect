@@ -28,11 +28,11 @@ export function Footer() {
               <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-bg-primary">
                 <Brain className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="font-semibold text-lg">MRC Psychiatry Coaching</span>
+              <span className="font-semibold text-lg">Online CASC Practice</span>
             </Link>
             <p className="text-muted-foreground max-w-md mb-6">
-              Professional coaching platform for MRCPsych candidates. Expert-led sessions 
-              designed to help you succeed in your psychiatric training journey.
+              Professional coaching platform for CASC candidates. Expert-led sessions 
+              designed to help you succeed in your clinical assessment journey.
             </p>
             <div className="flex flex-col gap-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
