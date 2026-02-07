@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Brain, Mail, Phone, MapPin } from "lucide-react";
+import { Mail } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const footerLinks = {
   platform: [
@@ -25,9 +26,7 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-bg-primary">
-                <Brain className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <img src={logo} alt="Online CASC Practice" className="h-9 w-9 rounded-lg object-cover" />
               <span className="font-semibold text-lg">Online CASC Practice</span>
             </Link>
             <p className="text-muted-foreground max-w-md mb-6">
@@ -38,10 +37,6 @@ export function Footer() {
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
                 <span>support@mrcpsychcoaching.com</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                <span>+44 (0) 20 1234 5678</span>
               </div>
             </div>
           </div>
@@ -84,7 +79,7 @@ export function Footer() {
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} MRC Psychiatry Coaching. All rights reserved.
+            © {new Date().getFullYear()} Online CASC Practice. ALL rights reserved.
           </p>
           <div className="flex gap-6">
             <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">

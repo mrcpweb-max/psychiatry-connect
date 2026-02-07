@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useSubmitContact } from "@/hooks/useContactSubmissions";
-import { Mail, Phone, Clock, Send, CheckCircle2, Loader2 } from "lucide-react";
+import { Mail, Clock, Send, CheckCircle2, Loader2 } from "lucide-react";
 import heroContactImage from "@/assets/hero-contact.jpg";
 
 export default function Contact() {
@@ -58,12 +58,6 @@ export default function Contact() {
       title: "Email Us",
       details: "support@mrcpsychcoaching.com",
       subtext: "We respond within 24 hours",
-    },
-    {
-      icon: Phone,
-      title: "Call Us",
-      details: "+44 (0) 20 1234 5678",
-      subtext: "Mon-Fri, 9am-5pm GMT",
     },
     {
       icon: Clock,

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Brain, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
+import logo from "@/assets/logo.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,9 +29,7 @@ export function Navbar() {
       <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-bg-primary">
-            <Brain className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <img src={logo} alt="Online CASC Practice" className="h-9 w-9 rounded-lg object-cover" />
           <span className="hidden font-semibold text-lg sm:inline-block">
             Online CASC Practice
           </span>
