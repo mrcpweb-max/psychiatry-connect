@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Brain, Mail, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { z } from "zod";
 
 const emailSchema = z.object({
@@ -42,9 +43,11 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
+      const productionUrl = "https://onlinecascpractice.com";
+      
       // First, initiate the password reset with Supabase
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${productionUrl}/reset-password`,
       });
 
       if (resetError) throw resetError;
@@ -53,7 +56,7 @@ export default function ForgotPassword() {
       const { error: emailError } = await supabase.functions.invoke("send-password-reset", {
         body: {
           email,
-          resetUrl: `${window.location.origin}/reset-password`,
+          resetUrl: `${productionUrl}/reset-password`,
         },
       });
 
@@ -137,9 +140,7 @@ export default function ForgotPassword() {
         <Card className="w-full max-w-md animate-scale-in">
           <CardHeader className="text-center">
             <Link to="/" className="inline-flex items-center justify-center gap-2 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg gradient-bg-primary">
-                <Brain className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <img src={logo} alt="Online CASC Practice" className="h-12 w-auto" />
             </Link>
             <CardTitle className="text-2xl">Forgot Password?</CardTitle>
             <CardDescription>

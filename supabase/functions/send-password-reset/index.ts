@@ -45,7 +45,7 @@ const handler = async (req: Request): Promise<Response> => {
       </head>
       <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 28px;">MRCPsych Coach</h1>
+          <h1 style="color: white; margin: 0; font-size: 28px;">Online CASC Practice</h1>
         </div>
         
         <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
@@ -70,7 +70,7 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
         
         <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 20px;">
-          © ${new Date().getFullYear()} MRCPsych Coach. All rights reserved.
+          © ${new Date().getFullYear()} Online CASC Practice. ALL rights reserved.
         </p>
       </body>
       </html>
@@ -83,9 +83,9 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "MRCPsych Coach <noreply@resend.dev>",
+        from: "Online CASC Practice <noreply@resend.dev>",
         to: [email],
-        subject: "Reset Your Password - MRCPsych Coach",
+        subject: "Reset Your Password - Online CASC Practice",
         html: emailHtml,
       }),
     });

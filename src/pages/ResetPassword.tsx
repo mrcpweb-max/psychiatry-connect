@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Brain, Lock, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
+import { Lock, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { z } from "zod";
 
 const passwordSchema = z.object({
@@ -141,9 +142,7 @@ export default function ResetPassword() {
         <Card className="w-full max-w-md animate-scale-in">
           <CardHeader className="text-center">
             <Link to="/" className="inline-flex items-center justify-center gap-2 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg gradient-bg-primary">
-                <Brain className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <img src={logo} alt="Online CASC Practice" className="h-12 w-auto" />
             </Link>
             <CardTitle className="text-2xl">Set New Password</CardTitle>
             <CardDescription>
