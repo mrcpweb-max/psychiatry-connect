@@ -73,6 +73,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+
+        // When a password recovery token is detected, redirect to reset page
+        if (event === "PASSWORD_RECOVERY") {
+          window.location.href = "/reset-password";
+          return;
+        }
         
         if (session?.user) {
           // Defer data fetch to avoid deadlock
