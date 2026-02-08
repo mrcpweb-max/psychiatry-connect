@@ -36,7 +36,7 @@ export function Footer() {
             <div className="flex flex-col gap-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                <span>support@mrcpsychcoaching.com</span>
+                <span>mrcpweb@gmail.com</span>
               </div>
             </div>
           </div>

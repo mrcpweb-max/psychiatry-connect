@@ -56,7 +56,7 @@ export default function Contact() {
     {
       icon: Mail,
       title: "Email Us",
-      details: "support@mrcpsychcoaching.com",
+      details: "mrcpweb@gmail.com",
       subtext: "We respond within 24 hours",
     },
     {
