@@ -31,8 +31,20 @@ export default function ResetPassword() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    // Listen for PASSWORD_RECOVERY event from the hash fragment
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "PASSWORD_RECOVERY") {
+          // User arrived via reset link - session is set, allow password change
+          return;
+        }
+      }
+    );
+
     // Check if we have an access token (user came from email link)
     const checkSession = async () => {
+      // Small delay to allow Supabase to process the hash fragment
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({
@@ -40,11 +52,13 @@ export default function ResetPassword() {
           description: "This password reset link is invalid or has expired. Please request a new one.",
           variant: "destructive",
         });
-        navigate("/auth");
+        navigate("/forgot-password");
       }
     };
     
     checkSession();
+
+    return () => subscription.unsubscribe();
   }, [navigate, toast]);
 
   const validateForm = () => {
