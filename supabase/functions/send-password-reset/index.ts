@@ -83,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Online CASC Practice <noreply@resend.dev>",
+        from: "Online CASC Practice <noreply@onlineecascpractice.com>",
         to: [email],
         subject: "Reset Your Password - Online CASC Practice",
         html: emailHtml,
