@@ -45,25 +45,11 @@ export default function ForgotPassword() {
     try {
       const productionUrl = "https://onlinecascpractice.com";
       
-      // First, initiate the password reset with Supabase
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${productionUrl}/reset-password`,
       });
 
       if (resetError) throw resetError;
-
-      // Send custom email via edge function
-      const { error: emailError } = await supabase.functions.invoke("send-password-reset", {
-        body: {
-          email,
-          resetUrl: `${productionUrl}/reset-password`,
-        },
-      });
-
-      if (emailError) {
-        console.error("Edge function error:", emailError);
-        // Don't throw - Supabase already sent default email
-      }
 
       setIsEmailSent(true);
       toast({
