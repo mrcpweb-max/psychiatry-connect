@@ -44,12 +44,15 @@ export default function ForgotPassword() {
 
     try {
       const productionUrl = "https://onlinecascpractice.com";
-      
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${productionUrl}/reset-password`,
+
+      const { error: emailError } = await supabase.functions.invoke("send-password-reset", {
+        body: {
+          email,
+          redirectTo: `${productionUrl}/reset-password`,
+        },
       });
 
-      if (resetError) throw resetError;
+      if (emailError) throw emailError;
 
       setIsEmailSent(true);
       toast({

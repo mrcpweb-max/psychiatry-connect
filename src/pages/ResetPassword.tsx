@@ -43,10 +43,23 @@ export default function ResetPassword() {
 
     // Check if we have an access token (user came from email link)
     const checkSession = async () => {
-      // Small delay to allow Supabase to process the hash fragment
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      let hasSession = false;
+
+      // Give the auth hash time to be processed (up to ~7 seconds)
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session) {
+          hasSession = true;
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 700));
+      }
+
+      if (!hasSession) {
         toast({
           title: "Invalid or Expired Link",
           description: "This password reset link is invalid or has expired. Please request a new one.",
@@ -100,11 +113,11 @@ export default function ResetPassword() {
         description: "Your password has been successfully reset.",
       });
 
-      // Sign out and redirect to login after 2 seconds
+      // Sign out and redirect to login after 10 seconds
       setTimeout(async () => {
         await supabase.auth.signOut();
         navigate("/auth");
-      }, 2000);
+      }, 10000);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -134,7 +147,7 @@ export default function ResetPassword() {
               </div>
               <CardTitle className="text-2xl">Password Reset!</CardTitle>
               <CardDescription>
-                Your password has been successfully updated. Redirecting you to login...
+                Your password has been successfully updated. Redirecting you to login in 10 seconds...
               </CardDescription>
             </CardHeader>
           </Card>
