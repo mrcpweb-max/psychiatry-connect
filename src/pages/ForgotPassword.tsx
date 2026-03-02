@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,14 @@ export default function ForgotPassword() {
   const [isEmailSent, setIsEmailSent] = useState(false);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((prev) => prev - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
   const validateEmail = () => {
     try {
@@ -39,6 +47,14 @@ export default function ForgotPassword() {
     e.preventDefault();
     
     if (!validateEmail()) return;
+    if (cooldown > 0) {
+      toast({
+        title: "Please wait",
+        description: `You can request another email in ${cooldown} seconds.`,
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsLoading(true);
 
@@ -55,6 +71,7 @@ export default function ForgotPassword() {
       if (emailError) throw emailError;
 
       setIsEmailSent(true);
+      setCooldown(60); // 60-second cooldown to prevent rate limiting
       toast({
         title: "Email Sent!",
         description: "Check your inbox for password reset instructions.",

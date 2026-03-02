@@ -11,6 +11,10 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Simple in-memory rate limiter (per isolate)
+const rateLimitMap = new Map<string, number>();
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+
 interface PasswordResetRequest {
   email: string;
   redirectTo?: string;
@@ -27,6 +31,20 @@ const handler = async (req: Request): Promise<Response> => {
     if (!email) {
       throw new Error("Missing required field: email");
     }
+
+    // Rate limit: 1 request per email per minute
+    const normalizedEmail = email.toLowerCase().trim();
+    const lastRequest = rateLimitMap.get(normalizedEmail);
+    const now = Date.now();
+
+    if (lastRequest && now - lastRequest < RATE_LIMIT_WINDOW_MS) {
+      return new Response(
+        JSON.stringify({ error: "Please wait before requesting another reset email." }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    rateLimitMap.set(normalizedEmail, now);
 
     if (!RESEND_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error("Missing required backend secrets");
