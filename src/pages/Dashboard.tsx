@@ -20,6 +20,7 @@ import {
   Video,
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
+import { StudentMeetingsSection } from "@/components/meetings/StudentMeetingsSection";
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
