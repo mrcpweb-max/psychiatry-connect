@@ -290,6 +290,11 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
+          {/* Zoom Meetings Tab */}
+          <TabsContent value="zoom-meetings">
+            <AdminMeetingsTab />
+          </TabsContent>
+
           {/* Contacts Tab */}
           <TabsContent value="contacts">
             <Card>

@@ -131,7 +131,10 @@ export default function TrainerDashboard() {
           </TabsContent>
 
           <TabsContent value="recordings">
-            <TrainerRecordingsTab />
+            <div className="space-y-6">
+              <TeacherMeetingsSection />
+              <TrainerRecordingsTab />
+            </div>
           </TabsContent>
         </Tabs>
       </main>
