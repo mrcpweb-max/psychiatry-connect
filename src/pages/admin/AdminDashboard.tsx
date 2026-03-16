@@ -144,6 +144,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="stations">Stations</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="recordings">Recordings</TabsTrigger>
+            <TabsTrigger value="zoom-meetings">Zoom Meetings</TabsTrigger>
             <TabsTrigger value="contacts">
               Contacts {unreadContacts > 0 && <Badge className="ml-2">{unreadContacts}</Badge>}
             </TabsTrigger>
