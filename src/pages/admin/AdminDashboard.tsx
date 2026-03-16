@@ -11,6 +11,7 @@ import { useTrainers } from "@/hooks/useTrainers";
 import { useContactSubmissions, useMarkContactRead } from "@/hooks/useContactSubmissions";
 import { useAllStations } from "@/hooks/useStations";
 import { useRecordings, useRevokeRecording, useAppSettings } from "@/hooks/useRecordings";
+import { AdminMeetingsTab } from "@/components/meetings/AdminMeetingsTab";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import {
@@ -143,6 +144,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="stations">Stations</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="recordings">Recordings</TabsTrigger>
+            <TabsTrigger value="zoom-meetings">Zoom Meetings</TabsTrigger>
             <TabsTrigger value="contacts">
               Contacts {unreadContacts > 0 && <Badge className="ml-2">{unreadContacts}</Badge>}
             </TabsTrigger>
@@ -286,6 +288,11 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Zoom Meetings Tab */}
+          <TabsContent value="zoom-meetings">
+            <AdminMeetingsTab />
           </TabsContent>
 
           {/* Contacts Tab */}

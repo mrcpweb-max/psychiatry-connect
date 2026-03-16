@@ -11,6 +11,7 @@ import { TrainerProfileCard } from "@/components/trainer/TrainerProfileCard";
 import { TrainerSessionsTab } from "@/components/trainer/TrainerSessionsTab";
 import { TrainerAvailabilityTab } from "@/components/trainer/TrainerAvailabilityTab";
 import { TrainerRecordingsTab } from "@/components/trainer/TrainerRecordingsTab";
+import { TeacherMeetingsSection } from "@/components/meetings/TeacherMeetingsSection";
 import { useRecordings } from "@/hooks/useRecordings";
 import PendingApproval from "./PendingApproval";
 
@@ -130,7 +131,10 @@ export default function TrainerDashboard() {
           </TabsContent>
 
           <TabsContent value="recordings">
-            <TrainerRecordingsTab />
+            <div className="space-y-6">
+              <TeacherMeetingsSection />
+              <TrainerRecordingsTab />
+            </div>
           </TabsContent>
         </Tabs>
       </main>

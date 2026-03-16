@@ -238,6 +238,51 @@ export type Database = {
         }
         Relationships: []
       }
+      meetings: {
+        Row: {
+          created_at: string
+          id: string
+          meeting_id: string | null
+          meeting_status: string
+          meeting_time: string | null
+          recording_access_expires: string | null
+          recording_created_at: string | null
+          recording_status: string
+          student_email: string | null
+          teacher_email: string | null
+          zoom_download_url: string | null
+          zoom_play_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          meeting_status?: string
+          meeting_time?: string | null
+          recording_access_expires?: string | null
+          recording_created_at?: string | null
+          recording_status?: string
+          student_email?: string | null
+          teacher_email?: string | null
+          zoom_download_url?: string | null
+          zoom_play_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          meeting_status?: string
+          meeting_time?: string | null
+          recording_access_expires?: string | null
+          recording_created_at?: string | null
+          recording_status?: string
+          student_email?: string | null
+          teacher_email?: string | null
+          zoom_download_url?: string | null
+          zoom_play_url?: string | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
