@@ -238,6 +238,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
+        {/* Zoom Meeting Recordings */}
+        <StudentMeetingsSection />
+
         {/* Session Recordings */}
         {activeRecordings.length > 0 && (
           <Card className="mt-6">
