@@ -11,6 +11,7 @@ import { useTrainers } from "@/hooks/useTrainers";
 import { useContactSubmissions, useMarkContactRead } from "@/hooks/useContactSubmissions";
 import { useAllStations } from "@/hooks/useStations";
 import { useRecordings, useRevokeRecording, useAppSettings } from "@/hooks/useRecordings";
+import { AdminMeetingsTab } from "@/components/meetings/AdminMeetingsTab";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import {
