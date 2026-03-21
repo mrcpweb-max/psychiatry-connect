@@ -181,14 +181,16 @@ export function StationsManagement() {
   };
 
   // Station handlers
-  const openStationDialog = (station?: { id: string; name: string; subcategory_id: string }) => {
+  const openStationDialog = (station?: { id: string; name: string; subcategory_id: string; description?: string | null }) => {
     if (station) {
-      setEditingStation({ id: station.id, name: station.name, subcategoryId: station.subcategory_id });
+      setEditingStation({ id: station.id, name: station.name, subcategoryId: station.subcategory_id, description: station.description || "" });
       setStationName(station.name);
+      setStationDescription(station.description || "");
       setStationSubcategoryId(station.subcategory_id);
     } else {
       setEditingStation(null);
       setStationName("");
+      setStationDescription("");
       setStationSubcategoryId("");
     }
     setStationDialogOpen(true);
