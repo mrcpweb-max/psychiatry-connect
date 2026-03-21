@@ -24,9 +24,9 @@ const features = [
   },
   {
     icon: Users,
-    title: "1:1 & Group Sessions",
+    title: "1:1, Group Sessions & Mock Examinations",
     description:
-      "Choose between personalized one-on-one coaching or collaborative group learning.",
+      "Choose between personalized one-on-one coaching, collaborative group learning, or full mock examinations.",
   },
   {
     icon: Calendar,
@@ -44,8 +44,8 @@ const features = [
 
 const stats = [
   { value: "95%", label: "Pass Rate" },
-  { value: "500+", label: "Candidates Trained" },
-  { value: "50+", label: "Expert Trainers" },
+  { value: "200+", label: "Candidates Trained" },
+  { value: "20+", label: "Expert Trainers" },
   { value: "4.9", label: "Average Rating" },
 ];
 
@@ -80,7 +80,7 @@ export default function Home() {
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 animate-fade-up">
               <Sparkles className="h-4 w-4" />
-              Trusted by 500+ MRCPsych Candidates
+              Trusted by 200+ Candidates
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 animate-fade-up" style={{ animationDelay: "0.1s" }}>
               Master Your{" "}
@@ -88,8 +88,8 @@ export default function Home() {
               Journey
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-up" style={{ animationDelay: "0.2s" }}>
-              Expert-led coaching sessions designed to help you excel in your psychiatric 
-              training. Book personalized 1:1 or group sessions with experienced trainers.
+              Expert-led coaching sessions designed to help you excel in your MRCPsych CASC training. 
+              Book personalised 1:1 or group sessions including mock examinations with experienced trainers.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-up" style={{ animationDelay: "0.3s" }}>
               <Link to="/sessions">
@@ -135,7 +135,7 @@ export default function Home() {
               Why Choose Our Coaching?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              We provide comprehensive support to help you succeed in your MRCPsych examinations.
+              We provide comprehensive support to help you succeed in your MRCPsych CASC examinations.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -220,13 +220,13 @@ export default function Home() {
                 Secure, Professional, Trusted
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
-                We prioritize your success and security. Our platform ensures a 
+                We prioritize your success and personalised training. Our platform ensures a 
                 seamless booking experience with secure payments and verified trainers.
               </p>
               <div className="space-y-4">
                 {[
-                  { icon: Shield, text: "Secure payment processing" },
-                  { icon: Clock, text: "Flexible cancellation policy" },
+                  { icon: Shield, text: "Secure, flexible payment" },
+                  { icon: Clock, text: "Friendly cancellation policy" },
                   { icon: Star, text: "Verified expert trainers" },
                   { icon: CheckCircle2, text: "Money-back guarantee" },
                 ].map((item, index) => (
@@ -266,7 +266,7 @@ export default function Home() {
             Start Your Journey Today
           </h2>
           <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto mb-8">
-            Take the first step towards acing your MRCPsych examination. 
+            Take the first step towards acing your MRCPsych CASC examination. 
             Book a session with one of our expert trainers.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

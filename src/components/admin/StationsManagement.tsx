@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useStationCategories, useStationSubcategories, useAllStations } from "@/hooks/useStations";
 import {
@@ -74,8 +75,9 @@ export function StationsManagement() {
 
   // Station state
   const [stationDialogOpen, setStationDialogOpen] = useState(false);
-  const [editingStation, setEditingStation] = useState<{ id: string; name: string; subcategoryId: string } | null>(null);
+  const [editingStation, setEditingStation] = useState<{ id: string; name: string; subcategoryId: string; description: string } | null>(null);
   const [stationName, setStationName] = useState("");
+  const [stationDescription, setStationDescription] = useState("");
   const [stationSubcategoryId, setStationSubcategoryId] = useState("");
 
   // Mutations
@@ -174,14 +176,16 @@ export function StationsManagement() {
   };
 
   // Station handlers
-  const openStationDialog = (station?: { id: string; name: string; subcategory_id: string }) => {
+  const openStationDialog = (station?: { id: string; name: string; subcategory_id: string; description?: string | null }) => {
     if (station) {
-      setEditingStation({ id: station.id, name: station.name, subcategoryId: station.subcategory_id });
+      setEditingStation({ id: station.id, name: station.name, subcategoryId: station.subcategory_id, description: station.description || "" });
       setStationName(station.name);
+      setStationDescription(station.description || "");
       setStationSubcategoryId(station.subcategory_id);
     } else {
       setEditingStation(null);
       setStationName("");
+      setStationDescription("");
       setStationSubcategoryId("");
     }
     setStationDialogOpen(true);
@@ -193,15 +197,17 @@ export function StationsManagement() {
         await updateStation.mutateAsync({ 
           id: editingStation.id, 
           name: stationName, 
-          subcategoryId: stationSubcategoryId 
+          subcategoryId: stationSubcategoryId,
+          description: stationDescription || null,
         });
         toast({ title: "Station updated" });
       } else {
-        await createStation.mutateAsync({ subcategoryId: stationSubcategoryId, name: stationName });
+        await createStation.mutateAsync({ subcategoryId: stationSubcategoryId, name: stationName, description: stationDescription || null });
         toast({ title: "Station created" });
       }
       setStationDialogOpen(false);
       setStationName("");
+      setStationDescription("");
       setStationSubcategoryId("");
       setEditingStation(null);
     } catch (error: any) {
@@ -455,6 +461,15 @@ export function StationsManagement() {
                     value={stationName}
                     onChange={(e) => setStationName(e.target.value)}
                     placeholder="e.g., Major Depressive Disorder"
+                  />
+                </div>
+                <div>
+                  <Label>Station Information (visible to students after payment)</Label>
+                  <Textarea
+                    value={stationDescription}
+                    onChange={(e) => setStationDescription(e.target.value)}
+                    placeholder="Enter detailed information about this station that students will see after payment..."
+                    rows={4}
                   />
                 </div>
               </div>

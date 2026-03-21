@@ -19,6 +19,7 @@ export interface Station {
   id: string;
   subcategory_id: string;
   name: string;
+  description?: string | null;
   is_active: boolean;
   created_at: string;
   subcategory?: StationSubcategory;

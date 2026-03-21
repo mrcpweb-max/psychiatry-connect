@@ -40,7 +40,6 @@ export function useContactSubmissions() {
 export function useSubmitContact() {
   return useMutation({
     mutationFn: async (submission: { name: string; email: string; subject?: string; message: string }) => {
-      // Validate input before sending to server
       const validatedData = contactSubmissionSchema.parse(submission);
       
       const { data, error } = await supabase
@@ -55,6 +54,21 @@ export function useSubmitContact() {
         .single();
 
       if (error) throw error;
+
+      // Send email notification
+      try {
+        await supabase.functions.invoke("send-contact-email", {
+          body: {
+            name: validatedData.name,
+            email: validatedData.email,
+            subject: validatedData.subject || null,
+            message: validatedData.message,
+          },
+        });
+      } catch (emailError) {
+        console.error("Failed to send email notification:", emailError);
+      }
+
       return data;
     },
   });

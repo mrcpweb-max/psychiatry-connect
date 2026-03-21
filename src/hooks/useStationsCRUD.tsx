@@ -125,10 +125,10 @@ export function useCreateStation() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ subcategoryId, name }: { subcategoryId: string; name: string }) => {
+    mutationFn: async ({ subcategoryId, name, description }: { subcategoryId: string; name: string; description?: string | null }) => {
       const { data, error } = await supabase
         .from("stations")
-        .insert({ subcategory_id: subcategoryId, name, is_active: true })
+        .insert({ subcategory_id: subcategoryId, name, is_active: true, description: description || null })
         .select()
         .single();
       if (error) throw error;
@@ -145,11 +145,12 @@ export function useUpdateStation() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, name, subcategoryId, isActive }: { id: string; name?: string; subcategoryId?: string; isActive?: boolean }) => {
+    mutationFn: async ({ id, name, subcategoryId, isActive, description }: { id: string; name?: string; subcategoryId?: string; isActive?: boolean; description?: string | null }) => {
       const updates: any = {};
       if (name !== undefined) updates.name = name;
       if (subcategoryId !== undefined) updates.subcategory_id = subcategoryId;
       if (isActive !== undefined) updates.is_active = isActive;
+      if (description !== undefined) updates.description = description;
       
       const { data, error } = await supabase
         .from("stations")
