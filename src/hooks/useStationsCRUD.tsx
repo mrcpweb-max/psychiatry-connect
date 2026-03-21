@@ -125,10 +125,10 @@ export function useCreateStation() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ subcategoryId, name }: { subcategoryId: string; name: string }) => {
+    mutationFn: async ({ subcategoryId, name, description }: { subcategoryId: string; name: string; description?: string | null }) => {
       const { data, error } = await supabase
         .from("stations")
-        .insert({ subcategory_id: subcategoryId, name, is_active: true })
+        .insert({ subcategory_id: subcategoryId, name, is_active: true, description: description || null })
         .select()
         .single();
       if (error) throw error;
