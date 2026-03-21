@@ -73,7 +73,7 @@ const faqs = [
   },
   {
     q: "How are trainers selected?",
-    a: "All our trainers are verified psychiatrists with extensive experience in MRCPsych examination preparation.",
+    a: "All our trainers are verified psychiatrist consultants with extensive experience in MRCPsych examination preparation.",
   },
 ];
 
