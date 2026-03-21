@@ -80,8 +80,9 @@ export function StationsManagement() {
 
   // Station state
   const [stationDialogOpen, setStationDialogOpen] = useState(false);
-  const [editingStation, setEditingStation] = useState<{ id: string; name: string; subcategoryId: string } | null>(null);
+  const [editingStation, setEditingStation] = useState<{ id: string; name: string; subcategoryId: string; description: string } | null>(null);
   const [stationName, setStationName] = useState("");
+  const [stationDescription, setStationDescription] = useState("");
   const [stationSubcategoryId, setStationSubcategoryId] = useState("");
 
   // Mutations
