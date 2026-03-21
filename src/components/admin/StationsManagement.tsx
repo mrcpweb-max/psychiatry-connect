@@ -461,6 +461,15 @@ export function StationsManagement() {
                     placeholder="e.g., Major Depressive Disorder"
                   />
                 </div>
+                <div>
+                  <Label>Station Information (visible to students after payment)</Label>
+                  <Textarea
+                    value={stationDescription}
+                    onChange={(e) => setStationDescription(e.target.value)}
+                    placeholder="Enter detailed information about this station that students will see after payment..."
+                    rows={4}
+                  />
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setStationDialogOpen(false)}>Cancel</Button>
