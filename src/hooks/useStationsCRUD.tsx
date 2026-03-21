@@ -145,11 +145,12 @@ export function useUpdateStation() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, name, subcategoryId, isActive }: { id: string; name?: string; subcategoryId?: string; isActive?: boolean }) => {
+    mutationFn: async ({ id, name, subcategoryId, isActive, description }: { id: string; name?: string; subcategoryId?: string; isActive?: boolean; description?: string | null }) => {
       const updates: any = {};
       if (name !== undefined) updates.name = name;
       if (subcategoryId !== undefined) updates.subcategory_id = subcategoryId;
       if (isActive !== undefined) updates.is_active = isActive;
+      if (description !== undefined) updates.description = description;
       
       const { data, error } = await supabase
         .from("stations")
