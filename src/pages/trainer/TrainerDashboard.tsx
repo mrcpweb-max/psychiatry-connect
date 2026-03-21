@@ -69,9 +69,10 @@ export default function TrainerDashboard() {
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-bg-primary">
-                <Brain className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <img src={logo} alt="Online CASC Practice" className="h-9 w-9 rounded-lg object-cover" />
+              <span className="hidden font-semibold text-lg sm:inline-block">
+                Online CASC Practice
+              </span>
             </Link>
             <Badge variant="outline" className="gap-1">
               <User className="h-3 w-3" />

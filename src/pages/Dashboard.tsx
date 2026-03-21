@@ -97,11 +97,9 @@ export default function Dashboard() {
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-bg-primary">
-              <Brain className="h-5 w-5 text-primary-foreground" />
-            </div>
+            <img src={logo} alt="Online CASC Practice" className="h-9 w-9 rounded-lg object-cover" />
             <span className="font-semibold text-lg hidden sm:inline-block">
-              MRC Psychiatry
+              Online CASC Practice
             </span>
           </Link>
           
