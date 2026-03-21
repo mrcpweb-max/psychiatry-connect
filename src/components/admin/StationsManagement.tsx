@@ -197,15 +197,17 @@ export function StationsManagement() {
         await updateStation.mutateAsync({ 
           id: editingStation.id, 
           name: stationName, 
-          subcategoryId: stationSubcategoryId 
+          subcategoryId: stationSubcategoryId,
+          description: stationDescription || null,
         });
         toast({ title: "Station updated" });
       } else {
-        await createStation.mutateAsync({ subcategoryId: stationSubcategoryId, name: stationName });
+        await createStation.mutateAsync({ subcategoryId: stationSubcategoryId, name: stationName, description: stationDescription || null });
         toast({ title: "Station created" });
       }
       setStationDialogOpen(false);
       setStationName("");
+      setStationDescription("");
       setStationSubcategoryId("");
       setEditingStation(null);
     } catch (error: any) {
