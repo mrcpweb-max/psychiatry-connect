@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserBookings } from "@/hooks/useBookings";
 import { useUserRecordings } from "@/hooks/useRecordings";
+import logo from "@/assets/logo.png";
 import {
-  Brain,
   Calendar,
   CreditCard,
   LogOut,
