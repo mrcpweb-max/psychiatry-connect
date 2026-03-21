@@ -15,11 +15,12 @@ import { AdminMeetingsTab } from "@/components/meetings/AdminMeetingsTab";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import {
-  Brain, Calendar, LogOut,
+  Calendar, LogOut,
   UserCog, DollarSign, RefreshCw, Mail, Shield,
   Loader2, Eye, Video, Layers,
   Settings, Ban, CreditCard,
 } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 // Import new management components
 import { StationsManagement } from "@/components/admin/StationsManagement";
