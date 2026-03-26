@@ -124,8 +124,7 @@ export default function Terms() {
             For questions about these Terms, please contact us at:
           </p>
           <p className="text-muted-foreground">
-            Email: support@mrcpsychcoaching.com<br />
-            Phone: +44 (0) 20 1234 5678
+            Email: mrcpweb@gmail.com
           </p>
         </section>
       </div>
