@@ -57,6 +57,7 @@ export default function BecomeTrainer() {
     calendarLink: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
 
   // Check if already logged in as trainer
   useEffect(() => {
@@ -194,8 +195,12 @@ export default function BecomeTrainer() {
     } catch (error: any) {
       let message = "An error occurred. Please try again.";
       
-      if (error.message.includes("User already registered")) {
+      if (error.message?.includes("User already registered")) {
         message = "This email is already registered. Please sign in instead.";
+      } else if (error.message?.includes("Email not confirmed")) {
+        message = "Please check your inbox and verify your email before signing in.";
+      } else if (error.message?.includes("rate") || error.status === 429) {
+        message = "Too many attempts. Please wait a minute and try again.";
       }
       
       toast({
@@ -338,12 +343,20 @@ export default function BecomeTrainer() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      className="pl-10"
+                      className="pl-10 pr-10"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                   {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                 </div>
