@@ -57,6 +57,7 @@ export default function BecomeTrainer() {
     calendarLink: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
 
   // Check if already logged in as trainer
   useEffect(() => {
