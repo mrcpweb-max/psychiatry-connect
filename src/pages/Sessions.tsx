@@ -88,25 +88,11 @@ const sessionCategories = [
 
 const trainers = [
   {
-    name: "Dr. Sarah Mitchell",
-    specialty: "Adult Psychiatry",
-    experience: "15+ years",
-    rating: 4.9,
-    sessions: 250,
-  },
-  {
-    name: "Dr. James Chen",
-    specialty: "Child & Adolescent",
-    experience: "12+ years",
-    rating: 4.8,
-    sessions: 180,
-  },
-  {
-    name: "Dr. Amara Okafor",
-    specialty: "Forensic Psychiatry",
+    name: "Dr. Kapil Kulkarni",
+    specialty: "Psychiatry",
     experience: "10+ years",
     rating: 4.9,
-    sessions: 150,
+    sessions: 200,
   },
 ];
 
