@@ -195,8 +195,12 @@ export default function BecomeTrainer() {
     } catch (error: any) {
       let message = "An error occurred. Please try again.";
       
-      if (error.message.includes("User already registered")) {
+      if (error.message?.includes("User already registered")) {
         message = "This email is already registered. Please sign in instead.";
+      } else if (error.message?.includes("Email not confirmed")) {
+        message = "Please check your inbox and verify your email before signing in.";
+      } else if (error.message?.includes("rate") || error.status === 429) {
+        message = "Too many attempts. Please wait a minute and try again.";
       }
       
       toast({
