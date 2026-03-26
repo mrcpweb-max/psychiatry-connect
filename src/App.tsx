@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { PublicLayout } from "./components/layout/PublicLayout";
+import { ScrollToTop } from "./components/ScrollToTop";
 import Home from "./pages/Home";
 import HowItWorks from "./pages/HowItWorks";
 import Sessions from "./pages/Sessions";
