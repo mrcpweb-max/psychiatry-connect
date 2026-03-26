@@ -22,7 +22,7 @@ export default function Terms() {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">1. Acceptance of Terms</h2>
           <p className="text-muted-foreground">
-            By accessing and using MRC Psychiatry Coaching ("the Service"), you agree to be bound by these Terms of Service. 
+            By accessing and using Online CASC Practice ("the Service"), you agree to be bound by these Terms of Service. 
             If you do not agree to these terms, please do not use our Service.
           </p>
         </section>
