@@ -30,7 +30,7 @@ export default function Terms() {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">2. Description of Service</h2>
           <p className="text-muted-foreground">
-            MRC Psychiatry Coaching provides online coaching and training services for MRCPsych examination candidates. 
+            Online CASC Practice provides online coaching and training services for MRCPsych examination candidates. 
             Our services include mock examinations, learning sessions, and related educational resources.
           </p>
         </section>
