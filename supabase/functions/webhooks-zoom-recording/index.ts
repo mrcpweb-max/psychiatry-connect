@@ -11,13 +11,44 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const body = await req.json();
+    const event = body.event;
+
+    // Handle Zoom URL validation challenge
+    if (event === "endpoint.url_validation") {
+      const plainToken = body.payload?.plainToken;
+      const secret = Deno.env.get("ZOOM_WEBHOOK_SECRET_TOKEN") || "";
+      
+      // Create HMAC SHA-256 hash
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(secret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+      );
+      const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(plainToken));
+      const hashHex = Array.from(new Uint8Array(signature))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      return new Response(
+        JSON.stringify({
+          plainToken,
+          encryptedToken: hashHex,
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
-
-    const body = await req.json();
-    const event = body.event;
 
     if (event !== "recording.completed") {
       return new Response(JSON.stringify({ message: "Event ignored" }), {
