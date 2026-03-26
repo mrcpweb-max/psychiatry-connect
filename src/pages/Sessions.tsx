@@ -88,25 +88,11 @@ const sessionCategories = [
 
 const trainers = [
   {
-    name: "Dr. Sarah Mitchell",
-    specialty: "Adult Psychiatry",
-    experience: "15+ years",
-    rating: 4.9,
-    sessions: 250,
-  },
-  {
-    name: "Dr. James Chen",
-    specialty: "Child & Adolescent",
-    experience: "12+ years",
-    rating: 4.8,
-    sessions: 180,
-  },
-  {
-    name: "Dr. Amara Okafor",
-    specialty: "Forensic Psychiatry",
+    name: "Dr. Kapil Kulkarni",
+    specialty: "Psychiatry",
     experience: "10+ years",
     rating: 4.9,
-    sessions: 150,
+    sessions: 200,
   },
 ];
 
@@ -255,7 +241,7 @@ export default function Sessions() {
               All sessions are conducted by verified, experienced psychiatrists.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid gap-6 max-w-sm mx-auto">
             {trainers.map((trainer, index) => (
               <Card key={index} className="text-center">
                 <CardContent className="pt-6">

@@ -22,7 +22,7 @@ export default function Terms() {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">1. Acceptance of Terms</h2>
           <p className="text-muted-foreground">
-            By accessing and using MRC Psychiatry Coaching ("the Service"), you agree to be bound by these Terms of Service. 
+            By accessing and using Online CASC Practice ("the Service"), you agree to be bound by these Terms of Service. 
             If you do not agree to these terms, please do not use our Service.
           </p>
         </section>
@@ -30,7 +30,7 @@ export default function Terms() {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">2. Description of Service</h2>
           <p className="text-muted-foreground">
-            MRC Psychiatry Coaching provides online coaching and training services for MRCPsych examination candidates. 
+            Online CASC Practice provides online coaching and training services for MRCPsych examination candidates. 
             Our services include mock examinations, learning sessions, and related educational resources.
           </p>
         </section>
@@ -103,7 +103,7 @@ export default function Terms() {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">9. Limitation of Liability</h2>
           <p className="text-muted-foreground">
-            MRC Psychiatry Coaching provides educational services and does not guarantee examination success. 
+            Online CASC Practice provides educational services and does not guarantee examination success. 
             We shall not be liable for any indirect, incidental, special, or consequential damages arising 
             from your use of the Service.
           </p>
@@ -124,8 +124,7 @@ export default function Terms() {
             For questions about these Terms, please contact us at:
           </p>
           <p className="text-muted-foreground">
-            Email: support@mrcpsychcoaching.com<br />
-            Phone: +44 (0) 20 1234 5678
+            Email: mrcpweb@gmail.com
           </p>
         </section>
       </div>

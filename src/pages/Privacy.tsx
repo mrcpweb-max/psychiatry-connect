@@ -22,7 +22,7 @@ export default function Privacy() {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">1. Introduction</h2>
           <p className="text-muted-foreground">
-            MRC Psychiatry Coaching ("we", "our", or "us") is committed to protecting your privacy. 
+            Online CASC Practice ("we", "our", or "us") is committed to protecting your privacy. 
             This Privacy Policy explains how we collect, use, disclose, and safeguard your information 
             when you use our platform.
           </p>
@@ -186,9 +186,8 @@ export default function Privacy() {
           </p>
           <p className="text-muted-foreground">
             Data Protection Officer<br />
-            MRC Psychiatry Coaching<br />
-            Email: privacy@mrcpsychcoaching.com<br />
-            Phone: +44 (0) 20 1234 5678
+            Online CASC Practice<br />
+            Email: mrcpweb@gmail.com
           </p>
           <p className="text-muted-foreground mt-4">
             You also have the right to lodge a complaint with the Information Commissioner's Office (ICO) 
