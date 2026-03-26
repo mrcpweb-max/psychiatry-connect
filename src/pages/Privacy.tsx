@@ -22,7 +22,7 @@ export default function Privacy() {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">1. Introduction</h2>
           <p className="text-muted-foreground">
-            MRC Psychiatry Coaching ("we", "our", or "us") is committed to protecting your privacy. 
+            Online CASC Practice ("we", "our", or "us") is committed to protecting your privacy. 
             This Privacy Policy explains how we collect, use, disclose, and safeguard your information 
             when you use our platform.
           </p>

@@ -103,7 +103,7 @@ export default function Terms() {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">9. Limitation of Liability</h2>
           <p className="text-muted-foreground">
-            MRC Psychiatry Coaching provides educational services and does not guarantee examination success. 
+            Online CASC Practice provides educational services and does not guarantee examination success. 
             We shall not be liable for any indirect, incidental, special, or consequential damages arising 
             from your use of the Service.
           </p>

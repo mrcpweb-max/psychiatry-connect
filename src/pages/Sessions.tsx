@@ -241,7 +241,7 @@ export default function Sessions() {
               All sessions are conducted by verified, experienced psychiatrists.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid gap-6 max-w-sm mx-auto">
             {trainers.map((trainer, index) => (
               <Card key={index} className="text-center">
                 <CardContent className="pt-6">
