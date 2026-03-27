@@ -136,6 +136,7 @@ export default function TrainerDashboard() {
             <TrainerSessionManagementTab trainerId={trainer.id} />
           </TabsContent>
 
+          <TabsContent value="availability">
             <TrainerAvailabilityTab trainerId={trainer.id} />
           </TabsContent>
 
