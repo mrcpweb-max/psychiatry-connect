@@ -12,6 +12,7 @@ import { TrainerProfileCard } from "@/components/trainer/TrainerProfileCard";
 import { TrainerSessionsTab } from "@/components/trainer/TrainerSessionsTab";
 import { TrainerAvailabilityTab } from "@/components/trainer/TrainerAvailabilityTab";
 import { TrainerRecordingsTab } from "@/components/trainer/TrainerRecordingsTab";
+import { TrainerSessionManagementTab } from "@/components/trainer/TrainerSessionManagementTab";
 import { TeacherMeetingsSection } from "@/components/meetings/TeacherMeetingsSection";
 import { useRecordings } from "@/hooks/useRecordings";
 import PendingApproval from "./PendingApproval";
