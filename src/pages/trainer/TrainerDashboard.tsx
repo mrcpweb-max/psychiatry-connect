@@ -109,9 +109,12 @@ export default function TrainerDashboard() {
 
         {/* Tabs */}
         <Tabs defaultValue="sessions" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsList className="grid w-full grid-cols-4 max-w-lg">
             <TabsTrigger value="sessions" className="gap-2">
               <Calendar className="h-4 w-4" /> Sessions
+            </TabsTrigger>
+            <TabsTrigger value="manage" className="gap-2">
+              <BookOpen className="h-4 w-4" /> Offerings
             </TabsTrigger>
             <TabsTrigger value="availability" className="gap-2">
               <Clock className="h-4 w-4" /> Availability
