@@ -651,6 +651,69 @@ export type Database = {
           },
         ]
       }
+      trainer_sessions: {
+        Row: {
+          created_at: string
+          currency: string
+          description: string | null
+          duration_minutes: number
+          group_size: number | null
+          id: string
+          is_active: boolean
+          price: number
+          session_mode: string
+          session_type: string
+          stations: number
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_minutes: number
+          group_size?: number | null
+          id?: string
+          is_active?: boolean
+          price: number
+          session_mode: string
+          session_type: string
+          stations?: number
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_minutes?: number
+          group_size?: number | null
+          id?: string
+          is_active?: boolean
+          price?: number
+          session_mode?: string
+          session_type?: string
+          stations?: number
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_sessions_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_sessions_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trainers: {
         Row: {
           applied_at: string | null

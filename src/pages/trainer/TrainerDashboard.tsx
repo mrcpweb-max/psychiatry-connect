@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrainerProfile, useTrainerBookings } from "@/hooks/useTrainerData";
-import { LogOut, User, Loader2, Calendar, Clock, Video, Settings } from "lucide-react";
+import { LogOut, User, Loader2, Calendar, Clock, Video, Settings, BookOpen } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { isPast, isFuture, parseISO } from "date-fns";
 import { TrainerStatsOverview } from "@/components/trainer/TrainerStatsOverview";
@@ -12,6 +12,7 @@ import { TrainerProfileCard } from "@/components/trainer/TrainerProfileCard";
 import { TrainerSessionsTab } from "@/components/trainer/TrainerSessionsTab";
 import { TrainerAvailabilityTab } from "@/components/trainer/TrainerAvailabilityTab";
 import { TrainerRecordingsTab } from "@/components/trainer/TrainerRecordingsTab";
+import { TrainerSessionManagementTab } from "@/components/trainer/TrainerSessionManagementTab";
 import { TeacherMeetingsSection } from "@/components/meetings/TeacherMeetingsSection";
 import { useRecordings } from "@/hooks/useRecordings";
 import PendingApproval from "./PendingApproval";
@@ -108,9 +109,12 @@ export default function TrainerDashboard() {
 
         {/* Tabs */}
         <Tabs defaultValue="sessions" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsList className="grid w-full grid-cols-4 max-w-lg">
             <TabsTrigger value="sessions" className="gap-2">
               <Calendar className="h-4 w-4" /> Sessions
+            </TabsTrigger>
+            <TabsTrigger value="manage" className="gap-2">
+              <BookOpen className="h-4 w-4" /> Offerings
             </TabsTrigger>
             <TabsTrigger value="availability" className="gap-2">
               <Clock className="h-4 w-4" /> Availability
@@ -126,6 +130,10 @@ export default function TrainerDashboard() {
               pastSessions={pastSessions}
               isLoading={bookingsLoading}
             />
+          </TabsContent>
+
+          <TabsContent value="manage">
+            <TrainerSessionManagementTab trainerId={trainer.id} />
           </TabsContent>
 
           <TabsContent value="availability">
