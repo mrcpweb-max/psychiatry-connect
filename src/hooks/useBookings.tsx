@@ -114,7 +114,8 @@ export function useUserBookings() {
         .from("bookings")
         .select(`
           *,
-          trainer:trainers(${TRAINER_JOIN_FIELDS})
+          trainer:trainers(${TRAINER_JOIN_FIELDS}),
+          booking_stations(id, station_id, station_order, station:stations(id, name, description))
         `)
         .eq("candidate_id", user.id)
         .order("created_at", { ascending: false });
