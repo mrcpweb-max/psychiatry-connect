@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useStreamRecording } from "@/hooks/useMeetings";
 import { Loader2, Video, AlertCircle } from "lucide-react";
@@ -50,6 +50,7 @@ export function RecordingPlayer({ meetingId, meetingLabel, disabled }: Recording
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>{meetingLabel || "Session Recording"}</DialogTitle>
+            <DialogDescription>Watch your session recording below. Downloads are disabled.</DialogDescription>
           </DialogHeader>
 
           <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
@@ -67,16 +68,14 @@ export function RecordingPlayer({ meetingId, meetingLabel, disabled }: Recording
             )}
 
             {playUrl && (
-              <video
+              <iframe
                 src={playUrl}
-                controls
-                controlsList="nodownload"
-                onContextMenu={(e) => e.preventDefault()}
-                className="w-full h-full"
-                autoPlay
-              >
-                Your browser does not support video playback.
-              </video>
+                className="w-full h-full border-0"
+                allow="autoplay; fullscreen"
+                allowFullScreen
+                sandbox="allow-scripts allow-same-origin allow-presentation"
+                title="Session Recording"
+              />
             )}
           </div>
         </DialogContent>

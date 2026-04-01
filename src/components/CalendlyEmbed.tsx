@@ -38,20 +38,29 @@ export function CalendlyEmbed({ url, prefill, onEventScheduled }: CalendlyEmbedP
     };
   }, [onEventScheduled]);
 
-  // Build URL with prefill
+  // Build URL with prefill and hide branding
   let calendlyUrl = url;
-  if (prefill) {
-    const params = new URLSearchParams();
-    if (prefill.name) params.set("name", prefill.name);
-    if (prefill.email) params.set("email", prefill.email);
-    calendlyUrl = `${url}${url.includes("?") ? "&" : "?"}${params.toString()}`;
-  }
+  const params = new URLSearchParams();
+  if (prefill?.name) params.set("name", prefill.name);
+  if (prefill?.email) params.set("email", prefill.email);
+  params.set("hide_gdpr_banner", "1");
+  params.set("hide_event_type_details", "0");
+  calendlyUrl = `${url}${url.includes("?") ? "&" : "?"}${params.toString()}`;
 
   return (
-    <div
-      className="calendly-inline-widget w-full"
-      data-url={calendlyUrl}
-      style={{ minWidth: "320px", height: "700px" }}
-    />
+    <>
+      <style>{`
+        .calendly-inline-widget .calendly-badge-widget,
+        .calendly-inline-widget [data-container="branding"],
+        .calendly-inline-widget .calendly-powered-by {
+          display: none !important;
+        }
+      `}</style>
+      <div
+        className="calendly-inline-widget w-full"
+        data-url={calendlyUrl}
+        style={{ minWidth: "320px", height: "700px" }}
+      />
+    </>
   );
 }

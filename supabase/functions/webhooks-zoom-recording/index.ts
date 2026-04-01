@@ -19,7 +19,6 @@ Deno.serve(async (req) => {
       const plainToken = body.payload?.plainToken;
       const secret = Deno.env.get("ZOOM_WEBHOOK_SECRET_TOKEN") || "";
       
-      // Create HMAC SHA-256 hash
       const encoder = new TextEncoder();
       const key = await crypto.subtle.importKey(
         "raw",
@@ -34,14 +33,8 @@ Deno.serve(async (req) => {
         .join("");
 
       return new Response(
-        JSON.stringify({
-          plainToken,
-          encryptedToken: hashHex,
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ plainToken, encryptedToken: hashHex }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -58,12 +51,15 @@ Deno.serve(async (req) => {
     }
 
     const payload = body.payload?.object;
+    const zoomMeetingId = String(payload?.id || "");
     const hostEmail = payload?.host_email;
+    const meetingStartTime = payload?.start_time;
     const recordingFiles = payload?.recording_files || [];
 
-    // Get the first shared screen or active speaker recording
     const mainRecording = recordingFiles.find(
       (f: any) => f.recording_type === "shared_screen_with_speaker_view"
+    ) || recordingFiles.find(
+      (f: any) => f.recording_type === "active_speaker"
     ) || recordingFiles[0];
 
     if (!mainRecording) {
@@ -76,27 +72,66 @@ Deno.serve(async (req) => {
     const playUrl = mainRecording.play_url;
     const downloadUrl = mainRecording.download_url;
 
-    // Find meeting by teacher email and most recent scheduled meeting
-    const { data: meeting } = await supabase
-      .from("meetings")
-      .select("*")
-      .eq("teacher_email", hostEmail)
-      .eq("recording_status", "pending")
-      .order("meeting_time", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    console.log("Zoom recording received. Meeting ID:", zoomMeetingId, "Host:", hostEmail, "Start:", meetingStartTime);
+
+    // Strategy 1: Try matching by meeting_id (Zoom numeric ID stored as string)
+    let meeting = null;
+    if (zoomMeetingId) {
+      const { data } = await supabase
+        .from("meetings")
+        .select("*")
+        .eq("recording_status", "pending")
+        .or(`meeting_id.eq.${zoomMeetingId}`)
+        .order("meeting_time", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      meeting = data;
+    }
+
+    // Strategy 2: Match by meeting time proximity (within 2 hours of any pending meeting)
+    if (!meeting && meetingStartTime) {
+      const startTime = new Date(meetingStartTime);
+      const windowBefore = new Date(startTime.getTime() - 2 * 60 * 60 * 1000).toISOString();
+      const windowAfter = new Date(startTime.getTime() + 2 * 60 * 60 * 1000).toISOString();
+      
+      const { data } = await supabase
+        .from("meetings")
+        .select("*")
+        .eq("recording_status", "pending")
+        .gte("meeting_time", windowBefore)
+        .lte("meeting_time", windowAfter)
+        .order("meeting_time", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      meeting = data;
+    }
+
+    // Strategy 3: Fallback - match by teacher email and most recent pending
+    if (!meeting && hostEmail) {
+      const { data } = await supabase
+        .from("meetings")
+        .select("*")
+        .eq("teacher_email", hostEmail)
+        .eq("recording_status", "pending")
+        .order("meeting_time", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      meeting = data;
+    }
 
     if (!meeting) {
-      console.log("No matching meeting found for host:", hostEmail);
-      return new Response(JSON.stringify({ message: "No matching meeting" }), {
+      console.log("No matching meeting found. ZoomID:", zoomMeetingId, "Host:", hostEmail);
+      // Store as unmatched for manual resolution
+      return new Response(JSON.stringify({ message: "No matching meeting found" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Set access expiry to 48 hours after meeting time
-    const meetingTime = new Date(meeting.meeting_time);
-    const expiresAt = new Date(meetingTime.getTime() + 48 * 60 * 60 * 1000);
+    console.log("Matched meeting:", meeting.id, "for Zoom meeting:", zoomMeetingId);
+
+    // Set access expiry to 48 hours from now
+    const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
     const { error } = await supabase
       .from("meetings")
@@ -118,7 +153,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, matched_meeting: meeting.id }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
