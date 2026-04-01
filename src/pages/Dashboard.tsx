@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserBookings } from "@/hooks/useBookings";
-import { useUserRecordings } from "@/hooks/useRecordings";
+import { useStudentMeetings } from "@/hooks/useMeetings";
+import { RecordingPlayer } from "@/components/meetings/RecordingPlayer";
 import logo from "@/assets/logo.png";
 import {
   Calendar,
@@ -14,18 +16,20 @@ import {
   Clock,
   BookOpen,
   ChevronRight,
+  ChevronDown,
   Settings,
   Loader2,
   CalendarCheck,
   Video,
+  FileText,
 } from "lucide-react";
-import { format, differenceInDays } from "date-fns";
-import { StudentMeetingsSection } from "@/components/meetings/StudentMeetingsSection";
+import { format } from "date-fns";
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
   const { data: bookings, isLoading: bookingsLoading } = useUserBookings();
-  const { data: recordings, isLoading: recordingsLoading } = useUserRecordings();
+  const { data: meetings } = useStudentMeetings();
+  const [expandedBooking, setExpandedBooking] = useState<string | null>(null);
 
   const handleSignOut = async () => {
     await signOut();
@@ -33,13 +37,28 @@ export default function Dashboard() {
 
   const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
-  const upcomingBookings = bookings?.filter(
-    (b) => b.status !== "cancelled" && b.status !== "completed"
-  ) || [];
+  const allBookings = bookings || [];
 
-  const activeRecordings = recordings?.filter(
-    (r: any) => r.status === "active" && new Date(r.expiry_date) > new Date()
-  ) || [];
+  const upcomingBookings = allBookings.filter(
+    (b) => b.status !== "cancelled" && b.status !== "completed"
+  );
+  const completedBookings = allBookings.filter(
+    (b) => b.status === "completed"
+  );
+
+  // Match meetings to bookings by student email and time proximity
+  const userEmail = profile?.email || user?.email;
+  const getMeetingsForBooking = (bookingId: string, scheduledAt: string | null) => {
+    if (!meetings?.length || !scheduledAt) return [];
+    return meetings.filter((m) => {
+      if (m.student_email !== userEmail) return false;
+      if (!m.meeting_time) return false;
+      const bookingTime = new Date(scheduledAt).getTime();
+      const meetingTime = new Date(m.meeting_time).getTime();
+      // Within 3 hours
+      return Math.abs(bookingTime - meetingTime) < 3 * 60 * 60 * 1000;
+    });
+  };
 
   const quickActions = [
     {
@@ -74,14 +93,10 @@ export default function Dashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "confirmed":
-        return "default";
-      case "pending":
-        return "secondary";
-      case "completed":
-        return "outline";
-      default:
-        return "destructive";
+      case "confirmed": return "default";
+      case "pending": return "secondary";
+      case "completed": return "outline";
+      default: return "destructive";
     }
   };
 
@@ -89,6 +104,131 @@ export default function Dashboard() {
     const modeLabel = mode === "one_on_one" ? "1:1" : "Group";
     const typeLabel = type === "mock" ? "Mock Examination" : "Learning Session";
     return `${modeLabel} ${typeLabel}`;
+  };
+
+  const toggleExpand = (bookingId: string) => {
+    setExpandedBooking(expandedBooking === bookingId ? null : bookingId);
+  };
+
+  const renderBookingCard = (booking: typeof allBookings[0]) => {
+    const isExpanded = expandedBooking === booking.id;
+    const stationNotes = booking.booking_stations
+      ?.filter((bs) => bs.station?.description)
+      .sort((a, b) => a.station_order - b.station_order) || [];
+    const relatedMeetings = getMeetingsForBooking(booking.id, booking.scheduled_at);
+    const hasExtras = stationNotes.length > 0 || relatedMeetings.length > 0;
+
+    return (
+      <div key={booking.id} className="border border-border rounded-lg overflow-hidden">
+        <div
+          className={`flex items-center justify-between p-4 hover:bg-muted/50 transition-colors ${hasExtras ? "cursor-pointer" : ""}`}
+          onClick={() => hasExtras && toggleExpand(booking.id)}
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+              <BookOpen className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h4 className="font-semibold">
+                {formatSessionType(booking.session_mode, booking.session_type)}
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                with {booking.trainer?.name || "Trainer"} • {booking.stations} station{booking.stations !== 1 ? "s" : ""}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-right hidden sm:block">
+              {booking.scheduled_at ? (
+                <>
+                  <div className="flex items-center gap-1 text-sm font-medium">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    {format(new Date(booking.scheduled_at), "MMM d, yyyy")}
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    {format(new Date(booking.scheduled_at), "h:mm a")}
+                  </div>
+                </>
+              ) : (
+                <Link to={`/schedule/${booking.id}`} onClick={(e) => e.stopPropagation()}>
+                  <Button size="sm" variant="outline" className="gap-1">
+                    <CalendarCheck className="h-4 w-4" />
+                    Schedule
+                  </Button>
+                </Link>
+              )}
+            </div>
+            <Badge variant={getStatusColor(booking.status)}>
+              {booking.status}
+            </Badge>
+            {hasExtras ? (
+              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            )}
+          </div>
+        </div>
+
+        {isExpanded && hasExtras && (
+          <div className="border-t border-border bg-muted/30 p-4 space-y-4">
+            {/* Station Notes */}
+            {stationNotes.length > 0 && (
+              <div>
+                <h5 className="text-sm font-semibold flex items-center gap-2 mb-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  Station Notes
+                </h5>
+                <div className="space-y-2">
+                  {stationNotes.map((bs) => (
+                    <div key={bs.id} className="bg-background border border-border rounded-md p-3">
+                      <p className="text-sm font-medium text-primary">{bs.station?.name}</p>
+                      <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">
+                        {bs.station?.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recordings for this session */}
+            {relatedMeetings.length > 0 && (
+              <div>
+                <h5 className="text-sm font-semibold flex items-center gap-2 mb-2">
+                  <Video className="h-4 w-4 text-primary" />
+                  Session Recordings
+                </h5>
+                <div className="space-y-2">
+                  {relatedMeetings.map((m) => {
+                    const isExpiredRec = m.recording_access_expires
+                      ? new Date() > new Date(m.recording_access_expires)
+                      : false;
+                    const isAvailable = m.recording_status === "available" && !isExpiredRec;
+
+                    return (
+                      <div key={m.id} className="flex items-center justify-between bg-background border border-border rounded-md p-3">
+                        <div>
+                          <p className="text-sm font-medium">
+                            {m.meeting_time ? format(new Date(m.meeting_time), "MMM d, yyyy h:mm a") : "Recording"}
+                          </p>
+                          <Badge variant="secondary" className="mt-1 text-xs">{m.recording_status}</Badge>
+                        </div>
+                        {isAvailable ? (
+                          <RecordingPlayer meetingId={m.id} meetingLabel={formatSessionType(booking.session_mode, booking.session_type)} />
+                        ) : m.recording_status === "available" && isExpiredRec ? (
+                          <Badge variant="destructive">Expired</Badge>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -169,53 +309,7 @@ export default function Dashboard() {
               </div>
             ) : upcomingBookings.length > 0 ? (
               <div className="space-y-4">
-                {upcomingBookings.map((booking) => (
-                  <div
-                    key={booking.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <BookOpen className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold">
-                          {formatSessionType(booking.session_mode, booking.session_type)}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          with {booking.trainer?.name || "Trainer"} • {booking.stations} station{booking.stations !== 1 ? "s" : ""}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right hidden sm:block">
-                        {booking.scheduled_at ? (
-                          <>
-                            <div className="flex items-center gap-1 text-sm font-medium">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              {format(new Date(booking.scheduled_at), "MMM d, yyyy")}
-                            </div>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Clock className="h-4 w-4" />
-                              {format(new Date(booking.scheduled_at), "h:mm a")}
-                            </div>
-                          </>
-                        ) : (
-                          <Link to={`/schedule/${booking.id}`}>
-                            <Button size="sm" variant="outline" className="gap-1">
-                              <CalendarCheck className="h-4 w-4" />
-                              Schedule
-                            </Button>
-                          </Link>
-                        )}
-                      </div>
-                      <Badge variant={getStatusColor(booking.status)}>
-                        {booking.status}
-                      </Badge>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                  </div>
-                ))}
+                {upcomingBookings.map(renderBookingCard)}
               </div>
             ) : (
               <div className="text-center py-12">
@@ -236,62 +330,19 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Zoom Meeting Recordings */}
-        <StudentMeetingsSection />
-
-        {/* Session Recordings */}
-        {activeRecordings.length > 0 && (
+        {/* Completed Sessions with recordings & notes */}
+        {completedBookings.length > 0 && (
           <Card className="mt-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Video className="h-5 w-5" />
-                Session Recordings
+                Completed Sessions
               </CardTitle>
-              <CardDescription>Access your recent session recordings</CardDescription>
+              <CardDescription>View recordings and station notes from past sessions</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {activeRecordings.map((recording: any) => {
-                  const daysLeft = differenceInDays(new Date(recording.expiry_date), new Date());
-                  return (
-                    <div
-                      key={recording.id}
-                      className="flex items-center justify-between p-4 rounded-lg border border-border"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Video className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold">
-                            {recording.booking?.session_mode === "one_on_one" ? "1:1" : "Group"}{" "}
-                            {recording.booking?.session_type === "mock" ? "Mock Examination" : "Learning Session"}
-                          </h4>
-                          <p className="text-sm text-muted-foreground">
-                            with {recording.booking?.trainer?.name || "Trainer"} •{" "}
-                            {recording.booking?.scheduled_at
-                              ? format(new Date(recording.booking.scheduled_at), "MMM d, yyyy")
-                              : "—"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <Badge variant={daysLeft <= 3 ? "destructive" : "secondary"}>
-                          {daysLeft} day{daysLeft !== 1 ? "s" : ""} left
-                        </Badge>
-                        <a
-                          href={recording.recording_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Button size="sm" variant="outline">
-                            Watch
-                          </Button>
-                        </a>
-                      </div>
-                    </div>
-                  );
-                })}
+                {completedBookings.map(renderBookingCard)}
               </div>
             </CardContent>
           </Card>
