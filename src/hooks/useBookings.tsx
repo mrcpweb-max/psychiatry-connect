@@ -21,6 +21,17 @@ export interface GroupParticipant {
   email: string;
 }
 
+export interface BookingStation {
+  id: string;
+  station_id: string;
+  station_order: number;
+  station?: {
+    id: string;
+    name: string;
+    description: string | null;
+  };
+}
+
 export interface Booking {
   id: string;
   candidate_id: string;
@@ -51,6 +62,7 @@ export interface Booking {
     full_name: string | null;
     email: string | null;
   };
+  booking_stations?: BookingStation[];
 }
 
 export interface CreateBookingData {
