@@ -1,0 +1,13 @@
+project_id = "artmonwoccmuhhrjtefe"
+
+[functions.send-password-reset]
+verify_jwt = false
+
+[functions.webhooks-calendly]
+verify_jwt = false
+
+[functions.webhooks-zoom-recording]
+verify_jwt = false
+
+[functions.stream-recording]
+verify_jwt = false

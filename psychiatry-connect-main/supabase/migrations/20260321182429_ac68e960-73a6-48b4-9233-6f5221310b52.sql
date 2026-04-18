@@ -1,0 +1,1 @@
+ALTER TABLE public.stations ADD COLUMN description text;
