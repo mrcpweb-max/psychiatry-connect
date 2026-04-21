@@ -38,13 +38,17 @@ export default function TrainerDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-3">
-          <User className="h-12 w-12 mx-auto text-muted-foreground/40" />
           <h2 className="text-xl font-bold">Trainer Profile Not Found</h2>
           <p className="text-muted-foreground">Your account is not linked to a trainer profile.</p>
           <Button variant="outline" onClick={handleSignOut}>Sign Out</Button>
         </div>
       </div>
     );
+  }
+
+  // EXPOSE ANY HOOK ERRORS:
+  if (!bookingsLoading && !bookings) {
+     console.error("Booking load failure");
   }
 
   const trainerStatus = (trainer as any).status;
@@ -55,19 +59,14 @@ export default function TrainerDashboard() {
   const now = new Date();
 
   const upcomingSessions = bookings?.filter((b) => {
-    if (b.status === "cancelled") return false;
-    if (b.status === "completed") return false;
-    if (b.scheduled_at) {
-      return new Date(b.scheduled_at) >= now;
-    }
-    // Pending/confirmed but not yet scheduled → show as upcoming
+    if (b.status === "cancelled" || b.status === "completed") return false;
+    if (b.scheduled_at && new Date(b.scheduled_at).getTime() < now.getTime()) return false;
     return true;
   }) || [];
 
   const pastSessions = bookings?.filter((b) => {
-    if (b.status === "completed") return true;
-    if (b.status === "cancelled") return true;
-    if (b.scheduled_at && new Date(b.scheduled_at) < now && b.status !== "pending") return true;
+    if (b.status === "completed" || b.status === "cancelled") return true;
+    if (b.scheduled_at && new Date(b.scheduled_at).getTime() < now.getTime()) return true;
     return false;
   }) || [];
 

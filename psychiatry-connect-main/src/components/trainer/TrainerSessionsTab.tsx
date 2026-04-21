@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Clock, User, ExternalLink, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { useSyncCalendlyLink } from "@/hooks/useBookings";
 
 interface TrainerSessionsTabProps {
   upcomingSessions: any[];
@@ -21,20 +22,14 @@ export function TrainerSessionsTab({ upcomingSessions, pastSessions, isLoading }
     );
   }
 
-  // Sort upcoming: soonest first (unscheduled at end)
+  // Sort upcoming: latest booked first
   const sortedUpcoming = [...upcomingSessions].sort((a, b) => {
-    if (!a.scheduled_at && !b.scheduled_at) return 0;
-    if (!a.scheduled_at) return 1;
-    if (!b.scheduled_at) return -1;
-    return new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime();
+    return new Date(b.created_at || b.scheduled_at || 0).getTime() - new Date(a.created_at || a.scheduled_at || 0).getTime();
   });
 
-  // Sort past: most recent first
+  // Sort past: latest booked first
   const sortedPast = [...pastSessions].sort((a, b) => {
-    if (!a.scheduled_at && !b.scheduled_at) return 0;
-    if (!a.scheduled_at) return 1;
-    if (!b.scheduled_at) return -1;
-    return new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime();
+    return new Date(b.created_at || b.scheduled_at || 0).getTime() - new Date(a.created_at || a.scheduled_at || 0).getTime();
   });
 
   return (
@@ -104,6 +99,8 @@ export function TrainerSessionsTab({ upcomingSessions, pastSessions, isLoading }
 }
 
 function SessionCard({ session }: { session: any }) {
+  const syncCalendlyLink = useSyncCalendlyLink();
+
   const statusColors: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
     confirmed: "bg-green-100 text-green-800 border-green-200",
@@ -151,12 +148,29 @@ function SessionCard({ session }: { session: any }) {
           </div>
         )}
       </div>
-      {(session.zoom_join_url || session.calendly_event_uri) && session.scheduled_at && new Date(session.scheduled_at) >= new Date() && session.status !== "cancelled" && (
-        <Button size="sm" variant="outline" className="mt-3 ml-10 gap-2" asChild>
-          <a href={session.zoom_join_url || session.calendly_event_uri} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="h-3.5 w-3.5" /> Join Meeting
-          </a>
-        </Button>
+      {session.scheduled_at && session.status !== "cancelled" && session.status !== "completed" && (
+        session.zoom_join_url ? (
+          <Button size="sm" variant="outline" className="mt-3 ml-10 gap-2" asChild>
+            <a href={session.zoom_join_url} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-3.5 w-3.5" /> Join Meeting
+            </a>
+          </Button>
+        ) : session.calendly_event_uri ? (
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="mt-3 ml-10 gap-2" 
+            onClick={() => syncCalendlyLink.mutate(session.id)}
+            disabled={syncCalendlyLink.isPending}
+          >
+            {syncCalendlyLink.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
+            Fetch Link
+          </Button>
+        ) : (
+          <Button size="sm" disabled variant="outline" className="mt-3 ml-10 gap-2 bg-muted text-muted-foreground" title="Meeting link will be provided shortly">
+            <ExternalLink className="h-3.5 w-3.5" /> No Link Provided
+          </Button>
+        )
       )}
     </div>
   );

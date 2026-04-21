@@ -34,7 +34,9 @@ Deno.serve(async (req) => {
     const meetingTime = payload?.event?.start_time || payload?.scheduled_event?.start_time;
     const scheduledEventUri = payload?.scheduled_event?.uri || payload?.event?.uri || null;
     const joinUrl = payload?.scheduled_event?.location?.join_url
+      || payload?.scheduled_event?.location?.location
       || payload?.event?.location?.join_url
+      || payload?.event?.location?.location
       || null;
 
     const { error } = await supabase.from("meetings").upsert(

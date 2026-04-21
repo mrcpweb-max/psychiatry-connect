@@ -265,8 +265,32 @@ export function useUpdateBooking() {
       if (error) throw error;
       return transformBookingData(data);
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["user-bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["trainer-bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["booking", variables.id] });
+    },
+  });
+}
+
+export function useSyncCalendlyLink() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (bookingId: string) => {
+      const { data, error } = await supabase.functions.invoke("sync-calendly-booking", {
+        body: { bookingId },
+      });
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate to fetch the new zoom_join_url
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["user-bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["trainer-bookings"] });
     },
   });
 }

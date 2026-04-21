@@ -174,12 +174,8 @@ export function useTrainerBookings(trainerId?: string) {
         .from("bookings")
         .select(`
           *,
-          candidate:profiles!bookings_candidate_id_fkey(id, full_name, email),
-          booking_stations:booking_stations(
-            id,
-            station_order,
-            station:stations(id, name, subcategory:station_subcategories(name, category:station_categories(name)))
-          )
+          candidate:profiles(id, full_name, email),
+          booking_stations(id, station_order, station:stations(id, name, description))
         `)
         .eq("trainer_id", trainerId)
         .order("created_at", { ascending: false });

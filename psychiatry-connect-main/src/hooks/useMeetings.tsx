@@ -23,9 +23,12 @@ export function useStudentMeetings() {
     queryKey: ["student-meetings", user?.id],
     enabled: !!user,
     queryFn: async () => {
+      if (!user?.email) return [];
+
       const { data, error } = await supabase
         .from("meetings")
         .select("*")
+        .eq("student_email", user.email)
         .order("meeting_time", { ascending: false });
 
       if (error) throw error;
@@ -40,9 +43,12 @@ export function useTeacherMeetings() {
     queryKey: ["teacher-meetings", user?.id],
     enabled: !!user,
     queryFn: async () => {
+      if (!user?.email) return [];
+
       const { data, error } = await supabase
         .from("meetings")
         .select("*")
+        .eq("teacher_email", user.email)
         .order("meeting_time", { ascending: false });
 
       if (error) throw error;

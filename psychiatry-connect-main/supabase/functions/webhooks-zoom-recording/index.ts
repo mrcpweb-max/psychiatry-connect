@@ -131,27 +131,59 @@ Deno.serve(async (req) => {
     console.log("Matched meeting:", meeting.id, "for Zoom meeting:", zoomMeetingId);
 
     const recordingCreatedAt = new Date().toISOString();
-    const recordingExpiresAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
+    const recordingExpiresAt = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000);
 
-    const { error } = await supabase
-      .from("meetings")
-      .update({
-        zoom_play_url: playUrl,
-        zoom_download_url: downloadUrl,
-        recording_status: "available",
-        recording_created_at: recordingCreatedAt,
-        recording_access_expires: recordingExpiresAt.toISOString(),
-        meeting_status: "completed",
-      })
-      .eq("id", meeting.id);
+    // If the meeting already has a recording and it's a different URL, insert a new row for this segment
+    if (meeting.recording_status === "available" && meeting.zoom_play_url && meeting.zoom_play_url !== playUrl) {
+      console.log("Meeting already has a recording, creating a new entry for additional recording segment.");
+      const { data: newMeeting, error: insertError } = await supabase
+        .from("meetings")
+        .insert({
+          meeting_id: meeting.meeting_id,
+          teacher_email: meeting.teacher_email,
+          student_email: meeting.student_email,
+          subject: meeting.subject,
+          meeting_time: meeting.meeting_time,
+          meeting_status: "completed",
+          recording_status: "available",
+          zoom_play_url: playUrl,
+          zoom_download_url: downloadUrl,
+          recording_created_at: recordingCreatedAt,
+          recording_access_expires: recordingExpiresAt.toISOString()
+        })
+        .select()
+        .single();
+        
+      if (insertError) {
+        console.error("DB insert error for segment:", insertError);
+        return new Response(JSON.stringify({ error: insertError.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      meeting = newMeeting;
+    } else {
+      const { error } = await supabase
+        .from("meetings")
+        .update({
+          zoom_play_url: playUrl,
+          zoom_download_url: downloadUrl,
+          recording_status: "available",
+          recording_created_at: recordingCreatedAt,
+          recording_access_expires: recordingExpiresAt.toISOString(),
+          meeting_status: "completed",
+        })
+        .eq("id", meeting.id);
 
-    if (error) {
-      console.error("DB error:", error);
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (error) {
+        console.error("DB error:", error);
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
+
 
     // Try to find a matching booking by candidate and nearest session time to create a recording entry
     if (meeting.student_email) {

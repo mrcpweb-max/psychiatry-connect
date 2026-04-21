@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
-import { useUserBookings } from "@/hooks/useBookings";
+import { useUserBookings, useSyncCalendlyLink } from "@/hooks/useBookings";
 import { useStudentMeetings } from "@/hooks/useMeetings";
 import { RecordingPlayer } from "@/components/meetings/RecordingPlayer";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import logo from "@/assets/logo.png";
 import {
   Calendar,
@@ -31,6 +32,7 @@ export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
   const { data: bookings, isLoading: bookingsLoading } = useUserBookings();
   const { data: meetings } = useStudentMeetings();
+  const syncCalendlyLink = useSyncCalendlyLink();
   const [expandedBooking, setExpandedBooking] = useState<string | null>(null);
 
   const handleSignOut = async () => {
@@ -41,12 +43,21 @@ export default function Dashboard() {
 
   const allBookings = bookings || [];
 
-  const upcomingBookings = allBookings.filter(
-    (b) => b.status !== "cancelled" && b.status !== "completed"
-  );
-  const completedBookings = allBookings.filter(
-    (b) => b.status === "completed"
-  );
+  const upcomingBookings = allBookings
+    .filter((b) => {
+      if (b.status === "cancelled" || b.status === "completed") return false;
+      if (b.scheduled_at && new Date(b.scheduled_at).getTime() < new Date().getTime()) return false;
+      return true;
+    })
+    .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+
+  const completedBookings = allBookings
+    .filter((b) => {
+      if (b.status === "completed" || b.status === "cancelled") return true;
+      if (b.scheduled_at && new Date(b.scheduled_at).getTime() < new Date().getTime()) return true;
+      return false;
+    })
+    .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 
   const quickActions = [
     {
@@ -98,8 +109,8 @@ export default function Dashboard() {
     setExpandedBooking(expandedBooking === bookingId ? null : bookingId);
   };
 
-  const getMatchingMeeting = (booking: typeof allBookings[0]) => {
-    if (!meetings?.length) return null;
+  const getMatchingMeetings = (booking: typeof allBookings[0]) => {
+    if (!meetings?.length) return [];
 
     const bookingTime = booking.scheduled_at
       ? new Date(booking.scheduled_at).getTime()
@@ -121,15 +132,13 @@ export default function Dashboard() {
         return Math.abs(meetingTime - bookingTime) <= maxDiff;
       })
       .sort((a, b) => {
-        const aDiff = Math.abs(new Date(a.meeting_time!).getTime() - bookingTime);
-        const bDiff = Math.abs(new Date(b.meeting_time!).getTime() - bookingTime);
-        return aDiff - bDiff;
-      })[0] ?? null;
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      });
   };
 
   const renderBookingCard = (booking: typeof allBookings[0]) => {
     const isExpanded = expandedBooking === booking.id;
-    const matchedMeeting = getMatchingMeeting(booking);
+    const matchedMeetings = getMatchingMeetings(booking);
     const stationsArray = Array.isArray(booking.booking_stations) ? booking.booking_stations : [];
     const stationNotes = stationsArray
       .filter((bs) => bs.station?.description)
@@ -143,12 +152,7 @@ export default function Dashboard() {
       return daysLeft >= 0;
     });
 
-    const recordingExpiry = matchedMeeting?.recording_access_expires || activeRecordings[0]?.expiry_date || null;
-    const recordingDaysLeft = recordingExpiry
-      ? Math.max(0, differenceInDays(new Date(recordingExpiry), new Date()))
-      : null;
-    
-    const hasExtras = stationNotes.length > 0 || activeRecordings.length > 0 || !!matchedMeeting;
+    const hasExtras = stationNotes.length > 0 || activeRecordings.length > 0 || matchedMeetings.length > 0;
 
     return (
       <div key={booking.id} className="border border-border rounded-lg overflow-hidden">
@@ -192,19 +196,41 @@ export default function Dashboard() {
               )}
             </div>
             {/* Join Meeting Link */}
-            {booking.zoom_join_url && booking.scheduled_at && new Date(booking.scheduled_at) >= new Date() && booking.status !== "cancelled" && (
-              <a
-                href={booking.zoom_join_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Button size="sm" className="gap-1.5 gradient-bg-primary border-0">
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  Join Meeting
+            {booking.scheduled_at &&
+              booking.status !== "cancelled" &&
+              booking.status !== "completed" &&
+              (booking.zoom_join_url ? (
+                <a
+                  href={booking.zoom_join_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button size="sm" className="gap-1.5 gradient-bg-primary border-0">
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Join Meeting
+                  </Button>
+                </a>
+              ) : booking.calendly_event_uri ? (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="gap-1.5" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    syncCalendlyLink.mutate(booking.id);
+                  }}
+                  disabled={syncCalendlyLink.isPending}
+                >
+                  {syncCalendlyLink.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
+                  Fetch Link
                 </Button>
-              </a>
-            )}
+              ) : (
+                <Button size="sm" disabled className="gap-1.5 bg-muted text-muted-foreground border-0" title="Meeting link will be provided shortly">
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  No Link Provided
+                </Button>
+              ))}
             <Badge variant={getStatusColor(booking.status)}>
               {booking.status}
             </Badge>
@@ -239,60 +265,94 @@ export default function Dashboard() {
             )}
 
             {/* Recordings for this session */}
-            {(activeRecordings.length > 0 || matchedMeeting) && (
+            {(activeRecordings.length > 0 || matchedMeetings.length > 0) && (
               <div>
                 <h5 className="text-sm font-semibold flex items-center gap-2 mb-2">
                   <Video className="h-4 w-4 text-primary" />
                   Session Recordings
                 </h5>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between bg-background border border-border rounded-md p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Video className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Session Recording</p>
-                        <p className="text-xs text-muted-foreground">
-                          Available: {format(new Date(matchedMeeting?.recording_created_at || activeRecordings[0]?.created_at || booking.updated_at), "MMM d, yyyy")}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {recordingDaysLeft !== null && (
-                        <div className="text-right">
-                          <Badge variant={recordingDaysLeft <= 2 ? "destructive" : "secondary"} className="text-xs">
-                            {recordingDaysLeft <= 0 ? "Expires today" : `${recordingDaysLeft} day${recordingDaysLeft !== 1 ? "s" : ""} left`}
-                          </Badge>
+                  {matchedMeetings.map((matchedMeeting, idx) => {
+                    const recordingExpiry = matchedMeeting.recording_access_expires;
+                    const recordingDaysLeft = recordingExpiry
+                      ? Math.max(0, differenceInDays(new Date(recordingExpiry), new Date()))
+                      : null;
+                    return (
+                      <div key={matchedMeeting.id} className="flex items-center justify-between bg-background border border-border rounded-md p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Video className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Cloud Recording {matchedMeetings.length > 1 ? `#${idx + 1}` : ""}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Available: {format(new Date(matchedMeeting.recording_created_at || booking.updated_at), "MMM d, yyyy")}
+                            </p>
+                          </div>
                         </div>
-                      )}
-
-                      {matchedMeeting ? (
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <RecordingPlayer
-                            meetingId={matchedMeeting.id}
-                            meetingLabel={`${formatSessionType(booking.session_mode, booking.session_type)} Recording`}
-                          />
+                        <div className="flex items-center gap-3">
+                          {recordingDaysLeft !== null && (
+                            <div className="text-right">
+                              <Badge variant={recordingDaysLeft <= 2 ? "destructive" : "secondary"} className="text-xs">
+                                {recordingDaysLeft <= 0 ? "Expires today" : `${recordingDaysLeft} day${recordingDaysLeft !== 1 ? "s" : ""} left`}
+                              </Badge>
+                            </div>
+                          )}
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <RecordingPlayer
+                              meetingId={matchedMeeting.id}
+                              meetingLabel={`Recording ${matchedMeetings.length > 1 ? `#${idx + 1}` : ""}`}
+                            />
+                          </div>
                         </div>
-                      ) : (
-                        <a
-                          href={activeRecordings[0].recording_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Button size="sm" variant="outline" className="gap-1">
-                            <Video className="h-4 w-4" />
-                            Watch
-                          </Button>
-                        </a>
-                      )}
-                    </div>
-                  </div>
+                      </div>
+                    );
+                  })}
+                  {activeRecordings.map((rec) => {
+                    const recordingExpiry = rec.expiry_date;
+                    const recordingDaysLeft = recordingExpiry
+                      ? Math.max(0, differenceInDays(new Date(recordingExpiry), new Date()))
+                      : null;
+                    return (
+                      <div key={rec.id} className="flex items-center justify-between bg-background border border-border rounded-md p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Video className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Session Recording</p>
+                            <p className="text-xs text-muted-foreground">
+                              Available: {format(new Date(rec.created_at || booking.updated_at), "MMM d, yyyy")}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {recordingDaysLeft !== null && (
+                            <div className="text-right">
+                              <Badge variant={recordingDaysLeft <= 2 ? "destructive" : "secondary"} className="text-xs">
+                                {recordingDaysLeft <= 0 ? "Expires today" : `${recordingDaysLeft} day${recordingDaysLeft !== 1 ? "s" : ""} left`}
+                              </Badge>
+                            </div>
+                          )}
+                          <a
+                            href={rec.recording_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button size="sm" variant="outline" className="gap-1">
+                              <Video className="h-4 w-4" />
+                              Watch
+                            </Button>
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
                 <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" />
-                  Recordings are available for 10 days. Downloads are not permitted.
+                  Recordings are available for 120 days. Downloads are not permitted.
                 </p>
               </div>
             )}
@@ -359,65 +419,86 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Upcoming Sessions */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Upcoming Sessions</CardTitle>
-              <CardDescription>Your scheduled coaching sessions</CardDescription>
-            </div>
-            <Link to="/book">
-              <Button size="sm" className="gradient-bg-primary border-0 gap-2">
-                <Plus className="h-4 w-4" />
-                Book New
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            {bookingsLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : upcomingBookings.length > 0 ? (
-              <div className="space-y-4">
-                {upcomingBookings.map(renderBookingCard)}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
-                  <Calendar className="h-8 w-8 text-muted-foreground" />
+        {/* Sessions Tabs */}
+        <Tabs defaultValue="upcoming" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+            <TabsTrigger value="upcoming" className="gap-2">
+              <CalendarCheck className="h-4 w-4" /> Upcoming Sessions
+            </TabsTrigger>
+            <TabsTrigger value="past" className="gap-2">
+              <Video className="h-4 w-4" /> Past Sessions
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="upcoming">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Upcoming Sessions</CardTitle>
+                  <CardDescription>Your scheduled coaching sessions</CardDescription>
                 </div>
-                <h3 className="font-semibold mb-2">No Upcoming Sessions</h3>
-                <p className="text-muted-foreground mb-4">
-                  Book your first session to get started
-                </p>
                 <Link to="/book">
-                  <Button className="gradient-bg-primary border-0">
-                    Book a Session
+                  <Button size="sm" className="gradient-bg-primary border-0 gap-2">
+                    <Plus className="h-4 w-4" />
+                    Book New
                   </Button>
                 </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </CardHeader>
+              <CardContent>
+                {bookingsLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : upcomingBookings.length > 0 ? (
+                  <div className="space-y-4">
+                    {upcomingBookings.map(renderBookingCard)}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
+                      <Calendar className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="font-semibold mb-2">No Upcoming Sessions</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Book your first session to get started
+                    </p>
+                    <Link to="/book">
+                      <Button className="gradient-bg-primary border-0">
+                        Book a Session
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* Completed Sessions with recordings & notes */}
-        {completedBookings.length > 0 && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Video className="h-5 w-5" />
-                Completed Sessions
-              </CardTitle>
-              <CardDescription>View recordings and station notes from past sessions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {completedBookings.map(renderBookingCard)}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+          <TabsContent value="past">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="h-5 w-5" />
+                  Past Sessions
+                </CardTitle>
+                <CardDescription>View recordings and station notes from past sessions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {completedBookings.length > 0 ? (
+                  <div className="space-y-4">
+                    {completedBookings.map(renderBookingCard)}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
+                      <Video className="h-8 w-8 text-muted-foreground/40" />
+                    </div>
+                    <p className="text-muted-foreground">No past sessions yet</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
