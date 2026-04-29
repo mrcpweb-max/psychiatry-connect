@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
-import { useUserBookings, useSyncCalendlyLink } from "@/hooks/useBookings";
+import { useUserBookings } from "@/hooks/useBookings";
 import { useStudentMeetings } from "@/hooks/useMeetings";
 import { RecordingPlayer } from "@/components/meetings/RecordingPlayer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,7 +32,6 @@ export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
   const { data: bookings, isLoading: bookingsLoading } = useUserBookings();
   const { data: meetings } = useStudentMeetings();
-  const syncCalendlyLink = useSyncCalendlyLink();
   const [expandedBooking, setExpandedBooking] = useState<string | null>(null);
 
   const handleSignOut = async () => {
@@ -212,24 +211,19 @@ export default function Dashboard() {
                   </Button>
                 </a>
               ) : booking.calendly_event_uri ? (
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="gap-1.5" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    syncCalendlyLink.mutate(booking.id);
-                  }}
-                  disabled={syncCalendlyLink.isPending}
+                <a
+                  href={booking.calendly_event_uri}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {syncCalendlyLink.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
-                  Fetch Link
-                </Button>
+                  <Button size="sm" variant="outline" className="gap-1.5">
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    View on Calendly
+                  </Button>
+                </a>
               ) : (
-                <Button size="sm" disabled className="gap-1.5 bg-muted text-muted-foreground border-0" title="Meeting link will be provided shortly">
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  No Link Provided
-                </Button>
+                <span className="text-xs text-muted-foreground italic">Link pending</span>
               ))}
             <Badge variant={getStatusColor(booking.status)}>
               {booking.status}

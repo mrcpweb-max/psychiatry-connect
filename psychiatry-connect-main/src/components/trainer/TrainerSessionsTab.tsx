@@ -3,9 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, User, ExternalLink, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, Clock, User, ExternalLink, Loader2, CheckCircle, XCircle, Video } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { useSyncCalendlyLink } from "@/hooks/useBookings";
 
 interface TrainerSessionsTabProps {
   upcomingSessions: any[];
@@ -99,7 +98,6 @@ export function TrainerSessionsTab({ upcomingSessions, pastSessions, isLoading }
 }
 
 function SessionCard({ session }: { session: any }) {
-  const syncCalendlyLink = useSyncCalendlyLink();
 
   const statusColors: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -149,28 +147,23 @@ function SessionCard({ session }: { session: any }) {
         )}
       </div>
       {session.scheduled_at && session.status !== "cancelled" && session.status !== "completed" && (
-        session.zoom_join_url ? (
-          <Button size="sm" variant="outline" className="mt-3 ml-10 gap-2" asChild>
-            <a href={session.zoom_join_url} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="h-3.5 w-3.5" /> Join Meeting
-            </a>
-          </Button>
-        ) : session.calendly_event_uri ? (
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="mt-3 ml-10 gap-2" 
-            onClick={() => syncCalendlyLink.mutate(session.id)}
-            disabled={syncCalendlyLink.isPending}
-          >
-            {syncCalendlyLink.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
-            Fetch Link
-          </Button>
-        ) : (
-          <Button size="sm" disabled variant="outline" className="mt-3 ml-10 gap-2 bg-muted text-muted-foreground" title="Meeting link will be provided shortly">
-            <ExternalLink className="h-3.5 w-3.5" /> No Link Provided
-          </Button>
-        )
+        <div className="mt-3 ml-10">
+          {session.zoom_join_url ? (
+            <Button size="sm" className="gap-2 gradient-bg-primary border-0" asChild>
+              <a href={session.zoom_join_url} target="_blank" rel="noopener noreferrer">
+                <Video className="h-3.5 w-3.5" /> Join Meeting
+              </a>
+            </Button>
+          ) : session.calendly_event_uri ? (
+            <Button size="sm" variant="outline" className="gap-2" asChild>
+              <a href={session.calendly_event_uri} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-3.5 w-3.5" /> View on Calendly
+              </a>
+            </Button>
+          ) : (
+            <span className="text-xs text-muted-foreground italic">Link will appear once candidate schedules via Calendly</span>
+          )}
+        </div>
       )}
     </div>
   );

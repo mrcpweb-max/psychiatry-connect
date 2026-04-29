@@ -18,7 +18,7 @@ import {
   Calendar, LogOut,
   UserCog, DollarSign, RefreshCw, Mail, Shield,
   Loader2, Eye, Video, Layers,
-  Settings, Ban, CreditCard,
+  Settings, Ban, CreditCard, ExternalLink,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -178,6 +178,19 @@ export default function AdminDashboard() {
                           </p>
                         </div>
                         <div className="flex items-center gap-3">
+                          {b.zoom_join_url ? (
+                            <a href={b.zoom_join_url} target="_blank" rel="noopener noreferrer">
+                              <Button size="sm" variant="outline" className="gap-1.5">
+                                <Video className="h-3.5 w-3.5" /> Join
+                              </Button>
+                            </a>
+                          ) : b.calendly_event_uri ? (
+                            <a href={b.calendly_event_uri} target="_blank" rel="noopener noreferrer">
+                              <Button size="sm" variant="ghost" className="gap-1.5 text-xs">
+                                <Eye className="h-3.5 w-3.5" /> Calendly
+                              </Button>
+                            </a>
+                          ) : null}
                           <Badge variant={b.status === "confirmed" ? "default" : b.status === "cancelled" ? "destructive" : "secondary"}>
                             {b.status}
                           </Badge>

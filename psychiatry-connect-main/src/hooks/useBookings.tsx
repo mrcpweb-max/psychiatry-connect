@@ -287,10 +287,22 @@ export function useSyncCalendlyLink() {
       return data;
     },
     onSuccess: () => {
-      // Invalidate to fetch the new zoom_join_url
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       queryClient.invalidateQueries({ queryKey: ["user-bookings"] });
       queryClient.invalidateQueries({ queryKey: ["trainer-bookings"] });
+      import("sonner").then(({ toast }) => toast.success("Meeting link updated successfully!"));
+    },
+    onError: (error: any) => {
+      console.error("Sync error:", error);
+      import("sonner").then(({ toast }) => {
+        if (error.message?.includes("404")) {
+          toast.error("Manual Sync function not deployed yet. Please deploy 'sync-calendly-booking' Edge Function.");
+        } else if (error.message?.includes("token")) {
+          toast.error("Calendly Token missing. Please set CALENDLY_PERSONAL_ACCESS_TOKEN in Supabase secrets.");
+        } else {
+          toast.error("Failed to fetch link: " + error.message);
+        }
+      });
     },
   });
 }
