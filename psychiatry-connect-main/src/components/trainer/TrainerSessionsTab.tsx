@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Clock, User, ExternalLink, Loader2, CheckCircle, XCircle, Video } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { useSyncCalendlyLink } from "@/hooks/useBookings";
 
 interface TrainerSessionsTabProps {
   upcomingSessions: any[];
@@ -98,6 +99,7 @@ export function TrainerSessionsTab({ upcomingSessions, pastSessions, isLoading }
 }
 
 function SessionCard({ session }: { session: any }) {
+  const syncLink = useSyncCalendlyLink();
 
   const statusColors: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -155,10 +157,15 @@ function SessionCard({ session }: { session: any }) {
               </a>
             </Button>
           ) : session.calendly_event_uri ? (
-            <Button size="sm" variant="outline" className="gap-2" asChild>
-              <a href={session.calendly_event_uri} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-3.5 w-3.5" /> View on Calendly
-              </a>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="gap-2"
+              onClick={() => syncLink.mutate(session.id)}
+              disabled={syncLink.isPending}
+            >
+              {syncLink.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Video className="h-3.5 w-3.5" />}
+              Get Meeting Link
             </Button>
           ) : (
             <span className="text-xs text-muted-foreground italic">Link will appear once candidate schedules via Calendly</span>

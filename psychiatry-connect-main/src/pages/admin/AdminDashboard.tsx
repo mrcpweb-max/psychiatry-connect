@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
-import { useAllBookings, useUpdateBooking } from "@/hooks/useBookings";
+import { useAllBookings, useUpdateBooking, useSyncCalendlyLink } from "@/hooks/useBookings";
 import { useTrainers } from "@/hooks/useTrainers";
 import { useContactSubmissions, useMarkContactRead } from "@/hooks/useContactSubmissions";
 import { useAllStations } from "@/hooks/useStations";
@@ -40,6 +40,7 @@ export default function AdminDashboard() {
   const updateBooking = useUpdateBooking();
   const markRead = useMarkContactRead();
   const revokeRecording = useRevokeRecording();
+  const syncLink = useSyncCalendlyLink();
 
   const handleSignOut = async () => {
     await signOut();
@@ -185,11 +186,16 @@ export default function AdminDashboard() {
                               </Button>
                             </a>
                           ) : b.calendly_event_uri ? (
-                            <a href={b.calendly_event_uri} target="_blank" rel="noopener noreferrer">
-                              <Button size="sm" variant="ghost" className="gap-1.5 text-xs">
-                                <Eye className="h-3.5 w-3.5" /> Calendly
-                              </Button>
-                            </a>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="gap-1.5 text-xs"
+                              onClick={() => syncLink.mutate(b.id)}
+                              disabled={syncLink.isPending}
+                            >
+                              {syncLink.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Video className="h-3.5 w-3.5" />}
+                              Get Link
+                            </Button>
                           ) : null}
                           <Badge variant={b.status === "confirmed" ? "default" : b.status === "cancelled" ? "destructive" : "secondary"}>
                             {b.status}
