@@ -108,7 +108,7 @@ function SessionCard({ session }: { session: any }) {
     cancelled: "bg-red-100 text-red-800 border-red-200",
   };
 
-  const candidateName = session.candidate?.full_name || session.candidate?.email || "Unknown Candidate";
+  const candidateName = session.candidate?.email || session.candidate?.full_name || "Unknown Candidate";
 
   return (
     <div className="p-4 border rounded-lg hover:shadow-sm transition-shadow">
@@ -185,7 +185,7 @@ function SessionCard({ session }: { session: any }) {
 }
 
 function PastSessionCard({ session }: { session: any }) {
-  const candidateName = session.candidate?.full_name || session.candidate?.email || "Candidate";
+  const candidateName = session.candidate?.email || session.candidate?.full_name || "Unknown Candidate";
   const isCancelled = session.status === "cancelled";
 
   return (

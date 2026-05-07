@@ -188,7 +188,7 @@ export function TrainerRecordingsTab() {
 }
 
 function RecordingCard({ recording, expired }: { recording: RecordingWithBooking; expired: boolean }) {
-  const candidateName = recording.booking?.candidate?.full_name || recording.booking?.candidate?.email || "Candidate";
+  const candidateName = recording.booking?.candidate?.email || recording.booking?.candidate?.full_name || "Unknown Candidate";
   const sessionLabel = recording.booking
     ? `${recording.booking.session_mode === "one_on_one" ? "1:1" : "Group"} ${recording.booking.session_type} • ${recording.booking.stations} station${recording.booking.stations !== 1 ? "s" : ""}`
     : "Session Recording";
@@ -244,7 +244,7 @@ function RecordingCard({ recording, expired }: { recording: RecordingWithBooking
 }
 
 function MeetingRecordingCard({ meeting, expired, matchedBooking }: { meeting: any; expired: boolean; matchedBooking?: any }) {
-  const candidateName = matchedBooking?.candidate?.full_name || matchedBooking?.candidate?.email || meeting.student_email || "Candidate";
+  const candidateName = matchedBooking?.candidate?.email || matchedBooking?.candidate?.full_name || meeting.student_email || "Unknown Candidate";
   
   // Build session label from matched booking if available
   const sessionLabel = matchedBooking
