@@ -38,38 +38,33 @@ export function MeetingTimer({ totalStations = 8 }: MeetingTimerProps) {
   const audioContextRef = useRef<AudioContext | null>(null);
   const alarmIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Bell alarm using Web Audio API
+  // Simple alarm clock ring using Web Audio API
   const playBell = useCallback(() => {
     if (isMuted) return;
     try {
       const ctx = audioContextRef.current || new AudioContext();
       audioContextRef.current = ctx;
+      const now = ctx.currentTime;
 
-      // Bell strike
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(830, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(415, ctx.currentTime + 0.8);
-      gain.gain.setValueAtTime(0.6, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 1.2);
+      // Classic alarm clock: two short beeps at 880Hz
+      for (let i = 0; i < 2; i++) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
 
-      // Overtone
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc2.type = "sine";
-      osc2.frequency.setValueAtTime(1245, ctx.currentTime);
-      osc2.frequency.exponentialRampToValueAtTime(622, ctx.currentTime + 0.6);
-      gain2.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
-      osc2.start(ctx.currentTime);
-      osc2.stop(ctx.currentTime + 0.8);
+        osc.type = "square";
+        osc.frequency.value = 880;
+
+        const beepStart = now + i * 0.25;
+        gain.gain.setValueAtTime(0, beepStart);
+        gain.gain.linearRampToValueAtTime(0.35, beepStart + 0.02);
+        gain.gain.setValueAtTime(0.35, beepStart + 0.12);
+        gain.gain.linearRampToValueAtTime(0, beepStart + 0.15);
+
+        osc.start(beepStart);
+        osc.stop(beepStart + 0.15);
+      }
     } catch (e) {
       console.warn("Audio playback failed:", e);
     }
