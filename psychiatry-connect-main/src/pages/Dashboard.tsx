@@ -42,11 +42,16 @@ export default function Dashboard() {
   const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
   const allBookings = bookings || [];
+  const twentyFourHoursMs = 24 * 60 * 60 * 1000;
 
   const upcomingBookings = allBookings
     .filter((b) => {
       if (b.status === "cancelled" || b.status === "completed") return false;
-      if (b.scheduled_at && new Date(b.scheduled_at).getTime() < new Date().getTime()) return false;
+      if (b.scheduled_at) {
+        const scheduledTime = new Date(b.scheduled_at).getTime();
+        // Keep in upcoming for 24h after scheduled time
+        if (scheduledTime + twentyFourHoursMs < new Date().getTime()) return false;
+      }
       return true;
     })
     .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
@@ -54,7 +59,11 @@ export default function Dashboard() {
   const completedBookings = allBookings
     .filter((b) => {
       if (b.status === "completed" || b.status === "cancelled") return true;
-      if (b.scheduled_at && new Date(b.scheduled_at).getTime() < new Date().getTime()) return true;
+      if (b.scheduled_at) {
+        const scheduledTime = new Date(b.scheduled_at).getTime();
+        // Only move to past after 24h window
+        if (scheduledTime + twentyFourHoursMs < new Date().getTime()) return true;
+      }
       return false;
     })
     .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
@@ -195,39 +204,45 @@ export default function Dashboard() {
                 </Link>
               )}
             </div>
-            {/* Join Meeting Link */}
+            {/* Join Meeting Link - visible for 24h after scheduled time */}
             {booking.scheduled_at &&
               booking.status !== "cancelled" &&
-              booking.status !== "completed" &&
-              (booking.zoom_join_url ? (
-                <a
-                  href={booking.zoom_join_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Button size="sm" className="gap-1.5 gradient-bg-primary border-0">
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    Join Meeting
+              (() => {
+                const scheduledTime = new Date(booking.scheduled_at!).getTime();
+                const now = Date.now();
+                const twentyFourHoursAfter = scheduledTime + 24 * 60 * 60 * 1000;
+                const showLink = now <= twentyFourHoursAfter && booking.status !== "completed";
+                if (!showLink) return null;
+                return booking.zoom_join_url ? (
+                  <a
+                    href={booking.zoom_join_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Button size="sm" className="gap-1.5 gradient-bg-primary border-0">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      Join Meeting
+                    </Button>
+                  </a>
+                ) : booking.calendly_event_uri ? (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="gap-1.5" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      syncLink.mutate(booking.id);
+                    }}
+                    disabled={syncLink.isPending}
+                  >
+                    {syncLink.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
+                    Get Meeting Link
                   </Button>
-                </a>
-              ) : booking.calendly_event_uri ? (
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="gap-1.5" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    syncLink.mutate(booking.id);
-                  }}
-                  disabled={syncLink.isPending}
-                >
-                  {syncLink.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
-                  Get Meeting Link
-                </Button>
-              ) : (
-                <span className="text-xs text-muted-foreground italic">Link pending</span>
-              ))}
+                ) : (
+                  <span className="text-xs text-muted-foreground italic">Link pending</span>
+                );
+              })()}
             <Badge variant={getStatusColor(booking.status)}>
               {booking.status}
             </Badge>

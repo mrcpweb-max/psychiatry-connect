@@ -57,16 +57,25 @@ export default function TrainerDashboard() {
   }
 
   const now = new Date();
+  const twentyFourHoursMs = 24 * 60 * 60 * 1000;
 
   const upcomingSessions = bookings?.filter((b) => {
     if (b.status === "cancelled" || b.status === "completed") return false;
-    if (b.scheduled_at && new Date(b.scheduled_at).getTime() < now.getTime()) return false;
+    if (b.scheduled_at) {
+      const scheduledTime = new Date(b.scheduled_at).getTime();
+      // Keep in upcoming for 24h after scheduled time
+      if (scheduledTime + twentyFourHoursMs < now.getTime()) return false;
+    }
     return true;
   }) || [];
 
   const pastSessions = bookings?.filter((b) => {
     if (b.status === "completed" || b.status === "cancelled") return true;
-    if (b.scheduled_at && new Date(b.scheduled_at).getTime() < now.getTime()) return true;
+    if (b.scheduled_at) {
+      const scheduledTime = new Date(b.scheduled_at).getTime();
+      // Only move to past after 24h window
+      if (scheduledTime + twentyFourHoursMs < now.getTime()) return true;
+    }
     return false;
   }) || [];
 

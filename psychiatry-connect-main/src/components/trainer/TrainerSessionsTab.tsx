@@ -108,7 +108,7 @@ function SessionCard({ session }: { session: any }) {
     cancelled: "bg-red-100 text-red-800 border-red-200",
   };
 
-  const candidateName = session.candidate?.full_name || session.candidate?.email || "Candidate";
+  const candidateName = session.candidate?.full_name || session.candidate?.email || "Unknown Candidate";
 
   return (
     <div className="p-4 border rounded-lg hover:shadow-sm transition-shadow">
@@ -148,30 +148,38 @@ function SessionCard({ session }: { session: any }) {
           </div>
         )}
       </div>
-      {session.scheduled_at && session.status !== "cancelled" && session.status !== "completed" && (
-        <div className="mt-3 ml-10">
-          {session.zoom_join_url ? (
-            <Button size="sm" className="gap-2 gradient-bg-primary border-0" asChild>
-              <a href={session.zoom_join_url} target="_blank" rel="noopener noreferrer">
-                <Video className="h-3.5 w-3.5" /> Join Meeting
-              </a>
-            </Button>
-          ) : session.calendly_event_uri ? (
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="gap-2"
-              onClick={() => syncLink.mutate(session.id)}
-              disabled={syncLink.isPending}
-            >
-              {syncLink.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Video className="h-3.5 w-3.5" />}
-              Get Meeting Link
-            </Button>
-          ) : (
-            <span className="text-xs text-muted-foreground italic">Link will appear once candidate schedules via Calendly</span>
-          )}
-        </div>
-      )}
+      {/* Show meeting link for upcoming sessions AND for 24h after scheduled time */}
+      {session.scheduled_at && session.status !== "cancelled" && (() => {
+        const scheduledTime = new Date(session.scheduled_at).getTime();
+        const now = Date.now();
+        const twentyFourHoursAfter = scheduledTime + 24 * 60 * 60 * 1000;
+        const showLink = now <= twentyFourHoursAfter && session.status !== "completed";
+        if (!showLink) return null;
+        return (
+          <div className="mt-3 ml-10">
+            {session.zoom_join_url ? (
+              <Button size="sm" className="gap-2 gradient-bg-primary border-0" asChild>
+                <a href={session.zoom_join_url} target="_blank" rel="noopener noreferrer">
+                  <Video className="h-3.5 w-3.5" /> Join Meeting
+                </a>
+              </Button>
+            ) : session.calendly_event_uri ? (
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="gap-2"
+                onClick={() => syncLink.mutate(session.id)}
+                disabled={syncLink.isPending}
+              >
+                {syncLink.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Video className="h-3.5 w-3.5" />}
+                Get Meeting Link
+              </Button>
+            ) : (
+              <span className="text-xs text-muted-foreground italic">Link will appear once candidate schedules via Calendly</span>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }

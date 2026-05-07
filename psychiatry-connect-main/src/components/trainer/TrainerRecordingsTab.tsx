@@ -26,6 +26,14 @@ interface RecordingWithBooking {
       full_name: string | null;
       email: string | null;
     } | null;
+    booking_stations?: {
+      id: string;
+      station_order: number;
+      station: {
+        id: string;
+        name: string;
+      } | null;
+    }[];
   };
 }
 
@@ -46,14 +54,15 @@ function useTrainerRecordings() {
 
       if (!trainer) return [];
 
-      // Get recordings for bookings assigned to this trainer
+      // Get recordings for bookings assigned to this trainer, including station names
       const { data, error } = await supabase
         .from("recordings")
         .select(`
           *,
           booking:bookings!recordings_booking_id_fkey(
             id, session_type, session_mode, stations, scheduled_at,
-            candidate:profiles!bookings_candidate_id_fkey(full_name, email)
+            candidate:profiles!bookings_candidate_id_fkey(full_name, email),
+            booking_stations(id, station_order, station:stations(id, name))
           )
         `)
         .order("created_at", { ascending: false });
@@ -65,14 +74,44 @@ function useTrainerRecordings() {
   });
 }
 
+// Helper: find matching booking for a meeting by time proximity
+function findMatchingBooking(
+  meeting: any,
+  recordings: RecordingWithBooking[]
+): RecordingWithBooking["booking"] | null {
+  if (!meeting.meeting_time || !recordings?.length) return null;
+
+  const meetingTime = new Date(meeting.meeting_time).getTime();
+  const maxDiff = 48 * 60 * 60 * 1000; // 48h window
+
+  for (const rec of recordings) {
+    if (!rec.booking?.scheduled_at) continue;
+    const bookingTime = new Date(rec.booking.scheduled_at).getTime();
+    if (Math.abs(meetingTime - bookingTime) <= maxDiff) {
+      return rec.booking;
+    }
+  }
+  return null;
+}
+
 export function TrainerRecordingsTab() {
   const { data: recordings, isLoading: recordingsLoading } = useTrainerRecordings();
   const { data: meetings, isLoading: meetingsLoading } = useTeacherMeetings();
 
   const isExpired = (expiry: string) => new Date(expiry) < new Date();
-  
-  const activeRecordings = recordings?.filter((r) => r.status === "active" && !isExpired(r.expiry_date)) || [];
-  const expiredRecordings = recordings?.filter((r) => r.status !== "active" || isExpired(r.expiry_date)) || [];
+
+  // Get meeting recording URLs to identify duplicates in the recordings table
+  const meetingPlayUrls = new Set(
+    (meetings || [])
+      .filter(m => m.zoom_play_url)
+      .map(m => m.zoom_play_url)
+  );
+
+  // Filter OUT recordings whose URL matches a meeting's zoom_play_url (to avoid duplicates)
+  const dedupedRecordings = (recordings || []).filter(r => !meetingPlayUrls.has(r.recording_url));
+
+  const activeRecordings = dedupedRecordings.filter((r) => r.status === "active" && !isExpired(r.expiry_date));
+  const expiredRecordings = dedupedRecordings.filter((r) => r.status !== "active" || isExpired(r.expiry_date));
 
   const availableMeetings = meetings?.filter(m => m.recording_status === "available" && m.recording_access_expires && !isExpired(m.recording_access_expires)) || [];
   const expiredMeetings = meetings?.filter(m => m.recording_status === "available" && (!m.recording_access_expires || isExpired(m.recording_access_expires))) || [];
@@ -103,7 +142,12 @@ export function TrainerRecordingsTab() {
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-foreground">Active</h3>
                 {availableMeetings.map((mtg) => (
-                  <MeetingRecordingCard key={mtg.id} meeting={mtg} expired={false} />
+                  <MeetingRecordingCard
+                    key={mtg.id}
+                    meeting={mtg}
+                    expired={false}
+                    matchedBooking={findMatchingBooking(mtg, recordings || [])}
+                  />
                 ))}
                 {activeRecordings.map((rec) => (
                   <RecordingCard key={rec.id} recording={rec} expired={false} />
@@ -116,7 +160,12 @@ export function TrainerRecordingsTab() {
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-muted-foreground">Expired / Revoked</h3>
                 {expiredMeetings.map((mtg) => (
-                  <MeetingRecordingCard key={mtg.id} meeting={mtg} expired={true} />
+                  <MeetingRecordingCard
+                    key={mtg.id}
+                    meeting={mtg}
+                    expired={true}
+                    matchedBooking={findMatchingBooking(mtg, recordings || [])}
+                  />
                 ))}
                 {expiredRecordings.map((rec) => (
                   <RecordingCard key={rec.id} recording={rec} expired={true} />
@@ -144,6 +193,12 @@ function RecordingCard({ recording, expired }: { recording: RecordingWithBooking
     ? `${recording.booking.session_mode === "one_on_one" ? "1:1" : "Group"} ${recording.booking.session_type} • ${recording.booking.stations} station${recording.booking.stations !== 1 ? "s" : ""}`
     : "Session Recording";
 
+  // Get station names from booking_stations
+  const stationNames = recording.booking?.booking_stations
+    ?.sort((a, b) => a.station_order - b.station_order)
+    ?.map(bs => bs.station?.name)
+    ?.filter(Boolean) || [];
+
   return (
     <div className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${expired ? "opacity-60" : "hover:bg-muted/50"}`}>
       <div className="flex items-center gap-3">
@@ -155,6 +210,15 @@ function RecordingCard({ recording, expired }: { recording: RecordingWithBooking
           <p className="text-xs text-muted-foreground">
             {sessionLabel}
           </p>
+          {stationNames.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {stationNames.map((name, i) => (
+                <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0">
+                  {name}
+                </Badge>
+              ))}
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">
             {recording.booking?.scheduled_at
               ? format(parseISO(recording.booking.scheduled_at), "MMM d, yyyy")
@@ -179,9 +243,19 @@ function RecordingCard({ recording, expired }: { recording: RecordingWithBooking
   );
 }
 
-function MeetingRecordingCard({ meeting, expired }: { meeting: any; expired: boolean }) {
-  const candidateName = meeting.student_email || "Candidate";
-  const sessionLabel = "Cloud Recording";
+function MeetingRecordingCard({ meeting, expired, matchedBooking }: { meeting: any; expired: boolean; matchedBooking?: any }) {
+  const candidateName = matchedBooking?.candidate?.full_name || matchedBooking?.candidate?.email || meeting.student_email || "Candidate";
+  
+  // Build session label from matched booking if available
+  const sessionLabel = matchedBooking
+    ? `${matchedBooking.session_mode === "one_on_one" ? "1:1" : "Group"} ${matchedBooking.session_type} • ${matchedBooking.stations} station${matchedBooking.stations !== 1 ? "s" : ""}`
+    : "Cloud Recording";
+
+  // Get station names from matched booking
+  const stationNames = matchedBooking?.booking_stations
+    ?.sort((a: any, b: any) => a.station_order - b.station_order)
+    ?.map((bs: any) => bs.station?.name)
+    ?.filter(Boolean) || [];
 
   return (
     <div className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${expired ? "opacity-60" : "hover:bg-muted/50"}`}>
@@ -194,6 +268,15 @@ function MeetingRecordingCard({ meeting, expired }: { meeting: any; expired: boo
           <p className="text-xs text-muted-foreground">
             {sessionLabel}
           </p>
+          {stationNames.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {stationNames.map((name: string, i: number) => (
+                <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0">
+                  {name}
+                </Badge>
+              ))}
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">
             {meeting.meeting_time
               ? format(parseISO(meeting.meeting_time), "MMM d, yyyy")
