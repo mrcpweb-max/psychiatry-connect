@@ -50,7 +50,7 @@ export function RecordingPlayer({ meetingId, meetingLabel, disabled }: Recording
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>{meetingLabel || "Session Recording"}</DialogTitle>
-            <DialogDescription>Watch your session recording below. Downloads are disabled.</DialogDescription>
+            <DialogDescription>Watch your session recording below.</DialogDescription>
           </DialogHeader>
 
           <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
@@ -73,7 +73,7 @@ export function RecordingPlayer({ meetingId, meetingLabel, disabled }: Recording
                 className="w-full h-full border-0"
                 allow="autoplay; fullscreen"
                 allowFullScreen
-                sandbox="allow-scripts allow-same-origin allow-presentation"
+                sandbox="allow-scripts allow-same-origin allow-presentation allow-downloads allow-popups"
                 title="Session Recording"
               />
             )}

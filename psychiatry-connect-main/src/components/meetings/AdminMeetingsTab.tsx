@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdminMeetings, useExtendMeetingExpiry } from "@/hooks/useMeetings";
 import { RecordingPlayer } from "./RecordingPlayer";
-import { Loader2, Video, Search, Clock } from "lucide-react";
+import { Loader2, Video, Search, Clock, Download } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
@@ -99,7 +99,20 @@ export function AdminMeetingsTab() {
                       {isExpired ? "expired" : m.recording_status}
                     </Badge>
                     {isAvailable && (
-                      <RecordingPlayer meetingId={m.id} />
+                      <>
+                        <RecordingPlayer meetingId={m.id} />
+                        {m.zoom_download_url && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => window.open(m.zoom_download_url!, "_blank")}
+                            className="gap-1"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download
+                          </Button>
+                        )}
+                      </>
                     )}
                     {isAvailable && isExpired && (
                       <Button

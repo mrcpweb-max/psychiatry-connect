@@ -2,8 +2,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useStudentMeetings } from "@/hooks/useMeetings";
 import { RecordingPlayer } from "./RecordingPlayer";
-import { Loader2, Video, Calendar } from "lucide-react";
+import { Loader2, Video, Calendar, Download } from "lucide-react";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 export function StudentMeetingsSection() {
   const { data: meetings, isLoading } = useStudentMeetings();
@@ -63,7 +64,20 @@ export function StudentMeetingsSection() {
                     {m.meeting_status}
                   </Badge>
                   {isAvailable ? (
-                    <RecordingPlayer meetingId={m.id} />
+                    <>
+                      <RecordingPlayer meetingId={m.id} />
+                      {m.zoom_download_url && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(m.zoom_download_url!, "_blank")}
+                          className="gap-1"
+                        >
+                          <Download className="h-4 w-4" />
+                          Download
+                        </Button>
+                      )}
+                    </>
                   ) : m.recording_status === "available" && isExpired ? (
                     <Badge variant="destructive">Recording expired</Badge>
                   ) : (
