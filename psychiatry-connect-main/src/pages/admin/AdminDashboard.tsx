@@ -259,7 +259,7 @@ export default function AdminDashboard() {
                     <div className="p-4 border rounded-lg">
                       <p className="font-medium">Auto Delete</p>
                       <p className="text-sm text-muted-foreground">
-                        Recordings expire after {appSettings?.recording_expiry_days?.days ?? 10} days
+                        Recordings expire after {appSettings?.recording_expiry_days?.days ?? 120} days
                       </p>
                     </div>
                   </div>
