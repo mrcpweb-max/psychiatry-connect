@@ -297,9 +297,6 @@ export default function Dashboard() {
                           </div>
                           <div>
                             <p className="text-sm font-medium">Cloud Recording {matchedMeetings.length > 1 ? `#${idx + 1}` : ""}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Available: {format(new Date(matchedMeeting.recording_created_at || booking.updated_at), "MMM d, yyyy")}
-                            </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -333,9 +330,6 @@ export default function Dashboard() {
                           </div>
                           <div>
                             <p className="text-sm font-medium">Session Recording</p>
-                            <p className="text-xs text-muted-foreground">
-                              Available: {format(new Date(rec.created_at || booking.updated_at), "MMM d, yyyy")}
-                            </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -362,10 +356,6 @@ export default function Dashboard() {
                     );
                   })}
                 </div>
-                <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
-                  Recordings are available for 120 days. Downloads are not permitted.
-                </p>
               </div>
             )}
           </div>

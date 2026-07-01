@@ -607,7 +607,7 @@ export default function BookSession() {
                       </Label>
                       <p className="text-sm text-muted-foreground mt-1">
                         I consent to session recording. The recording will be shared automatically 
-                        with me after the session and will be deleted after 10 days.
+                        with me after the session and will be deleted after 120 days.
                       </p>
                     </div>
                   </div>
